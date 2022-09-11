@@ -46,15 +46,15 @@ use bitvec::prelude::*;
 use core::{cell::Cell, mem};
 use radium::types::*;
 
-let a: BitArray = bitarr![0, 1, 0, 0, 1];
+let a: BitArray<_, _, _> = bitarr![0, 1, 0, 0, 1];
 
-let b: BitArray = bitarr![1; 5];
-assert_eq!(b.len(), mem::size_of::<usize>() * 8);
+let b: BitArray<_, _, _> = bitarr![1; U5];
+assert_eq!(b.len(), 5);
 
 let c = bitarr![u16, Lsb0; 0, 1, 0, 0, 1];
-let d = bitarr![Cell<u16>, Msb0; 1; 10];
-const E: BitArray<[u32; 1], LocalBits> = bitarr![u32, LocalBits; 1; 15];
-let f = bitarr![RadiumU32, Msb0; 1; 20];
+let d = bitarr![Cell<u16>, Msb0; 1; U10];
+const E: BitArray<u32, LocalBits, U15> = bitarr![u32, LocalBits; 1; U15];
+let f = bitarr![RadiumU32, Msb0; 1; U20];
 ```
 
 [`BitArray`]: crate::array::BitArray

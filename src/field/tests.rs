@@ -44,7 +44,7 @@ fn lsb0_u8_any_u5() {
 
 #[test]
 fn lsb0_u8_le_u20() {
-	let mut bits = BitArray::<[u8; 3], Lsb0>::ZERO;
+	let mut bits = BitArray::<u8, Lsb0, U24>::ZERO;
 
 	let val = random::<u32>() & 0x00_0F_FF_FFu32;
 	let bytes = (val << 2).to_le_bytes();
@@ -65,7 +65,7 @@ fn lsb0_u8_le_u20() {
 
 #[test]
 fn lsb0_u8_be_u20() {
-	let mut bits = BitArray::<[u8; 3], Lsb0>::ZERO;
+	let mut bits = BitArray::<u8, Lsb0, U24>::ZERO;
 
 	let val = random::<u32>() & 0x00_0F_FF_FFu32;
 	let mut bytes = (val << 2).to_be_bytes();
@@ -89,7 +89,7 @@ fn lsb0_u8_be_u20() {
 
 #[test]
 fn msb0_u8_any_u5() {
-	let mut bits = BitArray::<u8, Msb0>::ZERO;
+	let mut bits = BitArray::<u8, Msb0, U8>::ZERO;
 
 	let val = random::<u8>() & 0x1Fu8;
 	bits[2 .. 7].store_le(val);
@@ -124,7 +124,7 @@ fn msb0_u8_any_u5() {
 
 #[test]
 fn msb0_u8_le_u20() {
-	let mut bits = BitArray::<[u8; 3], Msb0>::ZERO;
+	let mut bits = BitArray::<u8, Msb0, U24>::ZERO;
 
 	let val = random::<u32>() & 0x00_0F_FF_FFu32;
 	let mut bytes = (val << 2).to_le_bytes();
@@ -148,7 +148,7 @@ fn msb0_u8_le_u20() {
 
 #[test]
 fn msb0_u8_be_u20() {
-	let mut bits = BitArray::<[u8; 3], Msb0>::ZERO;
+	let mut bits = BitArray::<u8, Msb0, U24>::ZERO;
 
 	let val = random::<u32>() & 0x00_0F_FF_FFu32;
 	let bytes = (val << 2).to_be_bytes();
@@ -169,7 +169,7 @@ fn msb0_u8_be_u20() {
 
 #[test]
 fn lsb0_u8_le_u24() {
-	let mut bits = BitArray::<[u8; 3], Lsb0>::ZERO;
+	let mut bits = BitArray::<u8, Lsb0, U24>::ZERO;
 
 	let val = random::<u32>() & 0x00_FF_FF_FFu32;
 	let bytes = val.to_le_bytes();
@@ -196,7 +196,7 @@ fn lsb0_u8_le_u24() {
 
 #[test]
 fn lsb0_u8_be_u24() {
-	let mut bits = BitArray::<[u8; 3], Lsb0>::ZERO;
+	let mut bits = BitArray::<u8, Lsb0, U24>::ZERO;
 
 	let val = random::<u32>() & 0x00_FF_FF_FFu32;
 	let bytes = val.to_be_bytes();
@@ -217,7 +217,7 @@ fn lsb0_u8_be_u24() {
 
 #[test]
 fn msb0_u8_le_u24() {
-	let mut bits = BitArray::<[u8; 3], Msb0>::ZERO;
+	let mut bits = BitArray::<u8, Msb0, U24>::ZERO;
 
 	let val = random::<u32>() & 0x00_FF_FF_FFu32;
 	let bytes = val.to_le_bytes();
@@ -238,7 +238,7 @@ fn msb0_u8_le_u24() {
 
 #[test]
 fn msb0_u8_be_u24() {
-	let mut bits = BitArray::<[u8; 3], Msb0>::ZERO;
+	let mut bits = BitArray::<u8, Msb0, U24>::ZERO;
 
 	let val = random::<u32>() & 0x00_FF_FF_FFu32;
 	let bytes = val.to_be_bytes();

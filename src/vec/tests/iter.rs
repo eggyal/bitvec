@@ -17,7 +17,7 @@ fn drain() {
 	assert!(drain.next().unwrap());
 	assert!(drain.next_back().unwrap());
 	drop(drain);
-	assert_eq!(bv, bits![0; 2]);
+	assert_eq!(bv, bits![0; U2]);
 }
 
 #[test]

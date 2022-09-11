@@ -23,7 +23,7 @@ fn walk() {
 	assert_eq!(bv.count_ones(), 8);
 
 	bv.retain(|idx, &bit| bit && idx % 2 == 1);
-	assert_eq!(bv, bits![1; 7]);
+	assert_eq!(bv, bits![1; U7]);
 
 	let mut bv2 = bitvec![1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1];
 	bv.append(&mut bv2);

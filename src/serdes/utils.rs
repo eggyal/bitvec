@@ -10,6 +10,11 @@ use core::{
 	mem::MaybeUninit,
 };
 
+use generic_array::{
+	functional::FunctionalSequence,
+	ArrayLength,
+	GenericArray,
+};
 use serde::{
 	de::{
 		Deserialize,
@@ -172,16 +177,28 @@ where
 provides the same de/ser logic, but allows it to be used on arrays of any size.
 **/
 #[repr(transparent)]
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(super) struct Array<T, const N: usize>
-where T: BitStore
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub(super) struct Array<T, N>
+where
+	T: BitStore,
+	N: ArrayLength<T>,
 {
 	/// The data buffer being transported.
-	pub(super) inner: [T; N],
+	pub(super) inner: GenericArray<T, N>,
 }
 
-impl<T, const N: usize> Array<T, N>
-where T: BitStore
+impl<T, N> Copy for Array<T, N>
+where
+	T: BitStore + Copy,
+	N: ArrayLength<T>,
+	GenericArray<T, N>: Copy,
+{
+}
+
+impl<T, N> Array<T, N>
+where
+	T: BitStore,
+	N: ArrayLength<T>,
 {
 	/// Constructs a `&Array` reference from an `&[T; N]` reference.
 	///
@@ -189,14 +206,15 @@ where T: BitStore
 	///
 	/// `Array` is `#[repr(transparent)]`, so this address transformation is
 	/// always sound.
-	pub(super) fn from_ref(arr: &[T; N]) -> &Self {
-		unsafe { &*(arr as *const [T; N] as *const Self) }
+	pub(super) fn from_ref(arr: &GenericArray<T, N>) -> &Self {
+		unsafe { &*(arr as *const GenericArray<T, N> as *const Self) }
 	}
 }
 
-impl<T, const N: usize> Serialize for Array<T, N>
+impl<T, N> Serialize for Array<T, N>
 where
 	T: BitStore,
+	N: ArrayLength<T>,
 	T::Mem: Serialize,
 {
 	#[inline]
@@ -204,7 +222,7 @@ where
 	where S: Serializer {
 		//  `serde` serializes arrays as a tuple, so that transport formats can
 		//  safely choose to keep or discard the length counter.
-		let mut state = serializer.serialize_tuple(N)?;
+		let mut state = serializer.serialize_tuple(N::USIZE)?;
 		for elem in self.inner.as_raw_slice().iter().map(BitStore::load_value) {
 			state.serialize_element(&elem)?
 		}
@@ -212,49 +230,66 @@ where
 	}
 }
 
-impl<'de, T, const N: usize> Deserialize<'de> for Array<T, N>
+impl<'de, T, N> Deserialize<'de> for Array<T, N>
 where
 	T: BitStore,
+	N: ArrayLength<T>,
 	T::Mem: Deserialize<'de>,
+	ArrayVisitor<T, N>: Visitor<'de, Value = Self>,
 {
 	#[inline]
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where D: Deserializer<'de> {
-		deserializer.deserialize_tuple(N, ArrayVisitor::<T, N>::THIS)
+		deserializer.deserialize_tuple(N::USIZE, ArrayVisitor::<T, N>::THIS)
 	}
 }
 
 /// Assists in deserialization of a static `[T; N]` for any `N`.
-struct ArrayVisitor<T, const N: usize>
-where T: BitStore
+struct ArrayVisitor<T, N>
+where
+	T: BitStore,
+	N: ArrayLength<T>,
 {
 	/// This produces an array during its work.
-	inner: PhantomData<[T; N]>,
+	inner: PhantomData<GenericArray<T, N>>,
 }
 
-impl<T, const N: usize> ArrayVisitor<T, N>
-where T: BitStore
+impl<T, N> ArrayVisitor<T, N>
+where
+	T: BitStore,
+	N: ArrayLength<T>,
 {
 	/// A blank visitor in its ready state.
 	const THIS: Self = Self { inner: PhantomData };
 }
 
-impl<'de, T, const N: usize> Visitor<'de> for ArrayVisitor<T, N>
+impl<'de, T, N> Visitor<'de> for ArrayVisitor<T, N>
 where
 	T: BitStore,
+	N: ArrayLength<T> + ArrayLength<T::Mem> + ArrayLength<MaybeUninit<T::Mem>>,
 	T::Mem: Deserialize<'de>,
+	GenericArray<MaybeUninit<T::Mem>, N>: Sized,
 {
 	type Value = Array<T, N>;
 
 	#[inline]
 	fn expecting(&self, fmt: &mut Formatter) -> fmt::Result {
-		write!(fmt, "a [{}; {}]", any::type_name::<T>(), N)
+		write!(
+			fmt,
+			"a GenericArray<{}, U{}>",
+			any::type_name::<T>(),
+			N::USIZE
+		)
 	}
 
 	#[inline]
 	fn visit_seq<V>(self, mut seq: V) -> Result<Self::Value, V::Error>
 	where V: SeqAccess<'de> {
-		let mut uninit = [MaybeUninit::<T::Mem>::uninit(); N];
+		#[allow(clippy::uninit_assumed_init)]
+		let mut uninit = unsafe {
+			MaybeUninit::<GenericArray<MaybeUninit<T::Mem>, N>>::uninit()
+				.assume_init()
+		};
 		for (idx, slot) in uninit.iter_mut().enumerate() {
 			slot.write(
 				seq.next_element::<T::Mem>()?
@@ -363,10 +398,17 @@ mod tests {
 	};
 
 	use super::*;
+	use crate::prelude::{
+		arr,
+		U2,
+		U40,
+	};
 
 	#[test]
 	fn array_wrapper() {
-		let array = Array { inner: [0u8; 40] };
+		let array = Array {
+			inner: arr![u8; 0; U40],
+		};
 		#[rustfmt::skip]
 		let tokens = &[
 			Token::Tuple { len: 40 },
@@ -384,9 +426,9 @@ mod tests {
 		assert_de_tokens(&array, tokens);
 
 		let tokens = &[Token::Tuple { len: 1 }, Token::U32(0), Token::TupleEnd];
-		assert_de_tokens_error::<Array<u32, 2>>(
+		assert_de_tokens_error::<Array<u32, U2>>(
 			tokens,
-			"invalid length 1, expected a [u32; 2]",
+			"invalid length 1, expected a GenericArray<u32, U2>",
 		);
 	}
 

@@ -1466,9 +1466,9 @@ where
 	/// assert_eq!(bits, bits![1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0]);
 	/// // and move here       ^--------------------------^
 	///
-	/// let bits = bits![mut 1; 2];
+	/// let bits = bits![mut 1; U2];
 	/// bits.shift_left(2);
-	/// assert_eq!(bits, bits![0; 2]);
+	/// assert_eq!(bits, bits![0; U2]);
 	/// ```
 	#[inline]
 	pub fn shift_left(&mut self, by: usize) {
@@ -1524,9 +1524,9 @@ where
 	/// assert_eq!(bits, bits![0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1]);
 	/// // and move here             ^--------------------------^
 	///
-	/// let bits = bits![mut 1; 2];
+	/// let bits = bits![mut 1; U2];
 	/// bits.shift_right(2);
-	/// assert_eq!(bits, bits![0; 2]);
+	/// assert_eq!(bits, bits![0; U2]);
 	/// ```
 	#[inline]
 	pub fn shift_right(&mut self, by: usize) {

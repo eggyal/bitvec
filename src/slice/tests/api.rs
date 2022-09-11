@@ -64,8 +64,8 @@ fn splitters() {
 	let bits = data.view_bits_mut::<Lsb0>();
 
 	let (l, r): (&Bsl<u8>, &Bsl<u8>) = bits.split_at(4);
-	assert_eq!(l, bits![0; 4]);
-	assert_eq!(r, bits![1; 4]);
+	assert_eq!(l, bits![0; U4]);
+	assert_eq!(r, bits![1; U4]);
 
 	let (l, r): (
 		&mut Bsl<<u8 as BitStore>::Alias>,
@@ -113,10 +113,10 @@ fn rotate_too_far_right() {
 
 #[test]
 fn fillers() {
-	let bits = bits![mut 0; 5];
+	let bits = bits![mut 0; U5];
 
 	bits.fill(true);
-	assert_eq!(bits, bits![1; 5]);
+	assert_eq!(bits, bits![1; U5]);
 	bits.fill_with(|idx| idx % 2 == 0);
 	assert_eq!(bits, bits![1, 0, 1, 0, 1]);
 
@@ -129,7 +129,7 @@ fn inspectors() {
 	let bits = bits![0, 1, 0, 0, 1, 0, 1, 1, 0, 1];
 
 	assert!(bits.contains(bits![0, 1, 0, 1]));
-	assert!(!bits.contains(bits![0; 4]));
+	assert!(!bits.contains(bits![0; U4]));
 
 	assert!(bits.starts_with(bits![0, 1, 0, 0]));
 	assert!(!bits.starts_with(bits![0, 1, 1]));

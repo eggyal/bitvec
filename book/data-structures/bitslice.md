@@ -102,8 +102,8 @@ use bitvec::prelude::*;
 let r = bits![0, 1, 0, 1];
 let w = bits![mut 0, 1, 0, 1];
 
-let r2 = bits![static 1; 4];
-let w2 = bits![static mut 1; 4];
+let r2 = bits![static 1; U4];
+let w2 = bits![static mut 1; U4];
 ```
 
 > You are not required to use the literals `0` or `1`; you can use any
@@ -122,7 +122,7 @@ use bitvec::prelude::*;
 
 let in_bytes = bits![u8, LocalBits; 0, 1, 0, 1];
 let in_shorts = bits![u16, Lsb0; 0, 1, 0, 1];
-let in_ints = bits![mut u32, Msb0; 0; 4];
+let in_ints = bits![mut u32, Msb0; 0; U4];
 ```
 
 To summarize the macro rules:
@@ -226,7 +226,7 @@ or you can set one bit in a region to a new value by using either the `.set` or
 ```rust
 use bitvec::prelude::*;
 
-let bits = bits![0; 4];
+let bits = bits![0; U4];
 assert!(bits.not_any());
 
 bits[0 .. 1].set_all(true);

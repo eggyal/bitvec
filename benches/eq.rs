@@ -7,8 +7,8 @@ use test::Bencher;
 
 #[bench]
 fn bitwise_eq(bench: &mut Bencher) {
-	let a = bitarr![usize, Lsb0; 0; 500];
-	let b = bitarr![usize, Msb0; 0; 500];
+	let a = bitarr![usize, Lsb0; 0; U500];
+	let b = bitarr![usize, Msb0; 0; U500];
 
 	bench.iter(|| {
 		a.iter()
@@ -20,24 +20,24 @@ fn bitwise_eq(bench: &mut Bencher) {
 
 #[bench]
 fn plain_eq(bench: &mut Bencher) {
-	let a = bitarr![usize, Lsb0; 0; 500];
-	let b = bitarr![usize, Msb0; 0; 500];
+	let a = bitarr![usize, Lsb0; 0; U500];
+	let b = bitarr![usize, Msb0; 0; U500];
 
 	bench.iter(|| a == b);
 }
 
 #[bench]
 fn lsb0_accel_eq(bench: &mut Bencher) {
-	let a = bitarr![usize, Lsb0; 0; 500];
-	let b = bitarr![usize, Lsb0; 0; 500];
+	let a = bitarr![usize, Lsb0; 0; U500];
+	let b = bitarr![usize, Lsb0; 0; U500];
 
 	bench.iter(|| a == b);
 }
 
 #[bench]
 fn msb0_accel_eq(bench: &mut Bencher) {
-	let a = bitarr![usize, Msb0; 0; 500];
-	let b = bitarr![usize, Msb0; 0; 500];
+	let a = bitarr![usize, Msb0; 0; U500];
+	let b = bitarr![usize, Msb0; 0; U500];
 
 	bench.iter(|| a == b);
 }

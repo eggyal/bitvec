@@ -2,15 +2,17 @@
 
 use super::BitArray;
 use crate::{
+	mem::Elts,
 	order::BitOrder,
 	slice::BitSlice,
-	view::BitViewSized,
+	store::BitStore,
 };
 
-impl<A, O> BitArray<A, O>
+impl<S, O, N> BitArray<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
 	/// Returns a bit-slice containing the entire bit-array. Equivalent to
 	/// `&a[..]`.
@@ -28,7 +30,7 @@ where
 	#[inline]
 	#[cfg(not(tarpaulin_include))]
 	#[deprecated = "use `.as_bitslice()` or `.as_raw_slice()` instead"]
-	pub fn as_slice(&self) -> &BitSlice<A::Store, O> {
+	pub fn as_slice(&self) -> &BitSlice<S, O> {
 		self.as_bitslice()
 	}
 
@@ -49,7 +51,7 @@ where
 	#[inline]
 	#[cfg(not(tarpaulin_include))]
 	#[deprecated = "use `.as_mut_bitslice()` or `.as_raw_mut_slice()` instead"]
-	pub fn as_mut_slice(&mut self) -> &mut BitSlice<A::Store, O> {
+	pub fn as_mut_slice(&mut self) -> &mut BitSlice<S, O> {
 		self.as_mut_bitslice()
 	}
 }

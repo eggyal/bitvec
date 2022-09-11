@@ -28,7 +28,7 @@ use bitvec::prelude::*;
 let bits = bits![0, 0, 0, 1, 1, 1, 0, 1];
 let mut split = bits.splitn(2, |idx, _bit| idx % 3 == 2);
 
-assert_eq!(split.next().unwrap(), bits![0; 2]);
+assert_eq!(split.next().unwrap(), bits![0; U2]);
 assert_eq!(split.next().unwrap(), bits![1, 1, 1, 0, 1]);
 assert!(split.next().is_none());
 ```

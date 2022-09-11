@@ -959,7 +959,7 @@ mod tests {
 
 	#[test]
 	fn bit_domain() {
-		let data = BitArray::<[u32; 3], Msb0>::new(random());
+		let data = BitArray::<u32, Msb0, U96>::new(random::<[u32; 3]>().into());
 
 		let bd = data.bit_domain();
 		assert!(bd.enclave().is_none());
@@ -1082,7 +1082,7 @@ mod tests {
 		#[cfg(not(feature = "std"))]
 		use alloc::format;
 
-		let data = BitArray::<u32, Msb0>::new(random());
+		let data = BitArray::<u32, Msb0, U32>::new(random::<[u32; 1]>().into());
 
 		let render = format!("{:?}", data.bit_domain());
 		let expected = format!(

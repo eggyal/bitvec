@@ -117,27 +117,27 @@ fn bits_seq_u64(b: &mut Bencher) {
 
 #[bench]
 fn bits_rep_u8(b: &mut Bencher) {
-	b.iter(|| bitarr![u8, LocalBits; 0; 120]);
-	b.iter(|| bitarr![u8, LocalBits; 1; 120]);
+	b.iter(|| bitarr![u8, LocalBits; 0; U120]);
+	b.iter(|| bitarr![u8, LocalBits; 1; U120]);
 }
 
 #[bench]
 fn bits_rep_u16(b: &mut Bencher) {
-	b.iter(|| bitarr![u16, LocalBits; 0; 120]);
-	b.iter(|| bitarr![u16, LocalBits; 1; 120]);
+	b.iter(|| bitarr![u16, LocalBits; 0; U120]);
+	b.iter(|| bitarr![u16, LocalBits; 1; U120]);
 }
 
 #[bench]
 fn bits_rep_u32(b: &mut Bencher) {
-	b.iter(|| bitarr![u32, LocalBits; 0; 120]);
-	b.iter(|| bitarr![u32, LocalBits; 1; 120]);
+	b.iter(|| bitarr![u32, LocalBits; 0; U120]);
+	b.iter(|| bitarr![u32, LocalBits; 1; U120]);
 }
 
 #[bench]
 #[cfg(target_pointer_width = "64")]
 fn bits_rep_u64(b: &mut Bencher) {
-	b.iter(|| bitarr![u64, LocalBits; 0; 120]);
-	b.iter(|| bitarr![u64, LocalBits; 1; 120]);
+	b.iter(|| bitarr![u64, LocalBits; 0; U120]);
+	b.iter(|| bitarr![u64, LocalBits; 1; U120]);
 }
 
 #[bench]

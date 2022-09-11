@@ -59,6 +59,7 @@ testing = [
 [dependencies]
 radium = "0.7"
 tap = "1"
+generic-array = "0.14"
 
 [dependencies.funty]
 version = "^2.0"
@@ -107,3 +108,10 @@ repository = "bitvecto-rs/bitvec"
 
 [badges.maintenance]
 status = "passively-maintained"
+
+[patch.crates-io]
+# the following upstream PRs are required; this patch includes them
+# - https://github.com/fizyk20/generic-array/pull/129
+# - https://github.com/fizyk20/generic-array/pull/130
+# - https://github.com/fizyk20/generic-array/pull/131
+generic-array = { git = 'https://github.com/eggyal/generic-array', branch = "merged-const-improvements" }

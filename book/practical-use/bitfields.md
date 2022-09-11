@@ -146,7 +146,7 @@ by using range indexing, `[start .. end]`.
 
 ```rust
 # use bitvec::prelude::*;
-# let bits = bits![mut u8, Msb0; 0; 32];
+# let bits = bits![mut u8, Msb0; 0; U32];
 bits[10 ..][.. 13].store_be::<u16>(0x765);
 assert_eq!(bits[10 .. 23].load_be::<u16>(), 0x765);
 

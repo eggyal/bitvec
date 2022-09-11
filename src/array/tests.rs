@@ -21,6 +21,7 @@ use core::{
 	},
 };
 
+use generic_array::GenericArray;
 use static_assertions::*;
 
 use crate::prelude::*;
@@ -64,8 +65,8 @@ fn bonus_impl() {
 
 #[test]
 fn make_and_view() {
-	let data = [1u8, 2, 3, 4];
-	let bits = BitArray::<_, Msb0>::new(data);
+	let data = arr![u8; 1, 2, 3, 4];
+	let bits = BitArray::<_, Msb0, U32>::new(data);
 
 	assert_eq!(bits.as_bitslice(), data.view_bits::<Msb0>());
 
@@ -97,23 +98,23 @@ fn ops() {
 
 #[test]
 fn traits() {
-	let a = BitArray::<[Cell<u16>; 3], Msb0>::default();
+	let a = BitArray::<Cell<u16>, Msb0, U48>::default();
 	let b = a.clone();
 	assert_eq!(a, b);
 
 	let mut c = rand::random::<[u8; 4]>();
 	let d = c.view_bits_mut::<Lsb0>();
-	assert!(<&BitArray<[u8; 4], Lsb0>>::try_from(&*d).is_ok());
-	assert!(<&mut BitArray<[u8; 4], Lsb0>>::try_from(&mut *d).is_ok());
-	assert!(<&BitArray<[u8; 3], Lsb0>>::try_from(&d[4 .. 28]).is_err());
-	assert!(<&mut BitArray<[u8; 3], Lsb0>>::try_from(&mut d[4 .. 28]).is_err());
-	assert_eq!(BitArray::<[u8; 4], Lsb0>::try_from(&*d).unwrap(), *d);
+	assert!(<&BitArray<u8, Lsb0, U32>>::try_from(&*d).is_ok());
+	assert!(<&mut BitArray<u8, Lsb0, U32>>::try_from(&mut *d).is_ok());
+	assert!(<&BitArray<u8, Lsb0, U24>>::try_from(&d[4 .. 28]).is_err());
+	assert!(<&mut BitArray<u8, Lsb0, U24>>::try_from(&mut d[4 .. 28]).is_err());
+	assert_eq!(BitArray::<u8, Lsb0, U32>::try_from(&*d).unwrap(), *d);
 }
 
 #[test]
 fn iter() {
-	let data = rand::random::<[u32; 4]>();
-	let bits = data.into_bitarray::<Lsb0>();
+	let data = GenericArray::from(rand::random::<[u32; 4]>());
+	let bits = data.into_bitarray::<Lsb0, U128>();
 	let view = data.view_bits::<Lsb0>();
 
 	assert!(
@@ -142,10 +143,7 @@ mod format {
 		convert::TryFrom,
 	};
 
-	use super::{
-		BitArray,
-		Lsb0,
-	};
+	use super::*;
 
 	#[test]
 	fn render() {
@@ -167,7 +165,7 @@ mod format {
 		assert_eq!(
 			format!(
 				"{:?}",
-				BitArray::<u8, Lsb0>::try_from(&bits![u8, Lsb0; 0; 9][1 ..])
+				BitArray::<u8, Lsb0>::try_from(&bits![u8, Lsb0; 0; U9][1 ..])
 					.unwrap_err(),
 			),
 			"TryFromBitSliceError::Misaligned",

@@ -2,8 +2,15 @@
 
 use core::slice;
 
+use generic_array::{
+	typenum::U1,
+	ArrayLength,
+	GenericArray,
+};
+
 use crate::{
 	array::BitArray,
+	mem::Elts,
 	order::BitOrder,
 	ptr::BitSpanError,
 	slice::BitSlice,
@@ -105,7 +112,7 @@ where T: BitStore
 
 /// Note that overly-large arrays may cause the conversions to fail.
 #[cfg(not(tarpaulin_include))]
-impl<T, const N: usize> BitView for [T; N]
+impl<T, N: ArrayLength<T>> BitView for GenericArray<T, N>
 where T: BitStore
 {
 	type Store = T;
@@ -139,15 +146,15 @@ where T: BitStore
 
 /// Helper trait for scalars and arrays, but not slices.
 pub trait BitViewSized: BitView + Sized {
-	/// The zero constant.
-	const ZERO: Self;
+	/// The number of `Self::Store` elements that `Self` occupies in memory.
+	type Elements;
 
 	/// Wraps `self` in a `BitArray`.
-	#[inline]
-	fn into_bitarray<O>(self) -> BitArray<Self, O>
-	where O: BitOrder {
-		BitArray::new(self)
-	}
+	// #[inline]
+	fn into_bitarray<O, N: Elts<Self::Store, Output = Self::Elements>>(
+		self,
+	) -> BitArray<Self::Store, O, N>
+	where O: BitOrder;
 
 	/// Views the type as a slice of its elements.
 	fn as_raw_slice(&self) -> &[Self::Store];
@@ -156,34 +163,42 @@ pub trait BitViewSized: BitView + Sized {
 	fn as_raw_mut_slice(&mut self) -> &mut [Self::Store];
 }
 
-impl<T> BitViewSized for T
-where T: BitStore
-{
-	const ZERO: Self = <T as BitStore>::ZERO;
+impl<T: BitStore> BitViewSized for T {
+	type Elements = U1;
 
 	#[inline]
-	fn as_raw_slice(&self) -> &[Self::Store] {
+	fn into_bitarray<O, N: Elts<T, Output = U1>>(self) -> BitArray<T, O, N>
+	where O: BitOrder {
+		BitArray::new([self].into())
+	}
+
+	#[inline]
+	fn as_raw_slice(&self) -> &[T] {
 		slice::from_ref(self)
 	}
 
 	#[inline]
-	fn as_raw_mut_slice(&mut self) -> &mut [Self::Store] {
+	fn as_raw_mut_slice(&mut self) -> &mut [T] {
 		slice::from_mut(self)
 	}
 }
 
-impl<T, const N: usize> BitViewSized for [T; N]
-where T: BitStore
-{
-	const ZERO: Self = [T::ZERO; N];
+impl<T: BitStore, E: ArrayLength<T>> BitViewSized for GenericArray<T, E> {
+	type Elements = E;
 
 	#[inline]
-	fn as_raw_slice(&self) -> &[Self::Store] {
+	fn into_bitarray<O, N: Elts<T, Output = E>>(self) -> BitArray<T, O, N>
+	where O: BitOrder {
+		BitArray::new(self)
+	}
+
+	#[inline]
+	fn as_raw_slice(&self) -> &[T] {
 		&self[..]
 	}
 
 	#[inline]
-	fn as_raw_mut_slice(&mut self) -> &mut [Self::Store] {
+	fn as_raw_mut_slice(&mut self) -> &mut [T] {
 		&mut self[..]
 	}
 }
@@ -289,12 +304,12 @@ mod tests {
 
 		assert_eq!(0usize.as_raw_slice().len(), 1);
 		assert_eq!(0usize.as_raw_mut_slice().len(), 1);
-		assert_eq!(0u32.into_bitarray::<LocalBits>().len(), 32);
+		assert_eq!(0u32.into_bitarray::<LocalBits, U32>().len(), 32);
 
 		assert_impl_all!(
-			[usize; 10]: AsBits<usize>,
-			AsMutBits<usize>,
-			BitViewSized,
+			GenericArray<u32, U10>: AsBits<u32>,
+			AsMutBits<u32>,
+			// BitViewSized<U300>,
 			BitView,
 		);
 	}

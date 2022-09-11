@@ -351,13 +351,13 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 4];
+	/// let bits = bits![mut 0; U4];
 	/// let mut iter = bits.iter_mut();
 	///
 	/// *iter.next().unwrap() = true;
-	/// assert_eq!(iter.as_bitslice(), bits![0; 3]);
+	/// assert_eq!(iter.as_bitslice(), bits![0; U3]);
 	/// *iter.next().unwrap() = true;
-	/// assert_eq!(iter.as_bitslice(), bits![0; 2]);
+	/// assert_eq!(iter.as_bitslice(), bits![0; U2]);
 	///
 	/// assert_eq!(bits, bits![1, 1, 0, 0]);
 	/// ```
@@ -1001,10 +1001,10 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 5];
+	/// let bits = bits![mut 0; U5];
 	/// let mut chunks = bits.chunks_exact_mut(3);
 	///
-	/// assert_eq!(chunks.take_remainder(), bits![0; 2]);
+	/// assert_eq!(chunks.take_remainder(), bits![0; U2]);
 	/// assert!(chunks.take_remainder().is_empty());
 	/// ```
 	#[inline]
@@ -1412,10 +1412,10 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 5];
+	/// let bits = bits![mut 0; U5];
 	/// let mut chunks = bits.rchunks_exact_mut(3);
 	///
-	/// assert_eq!(chunks.take_remainder(), bits![0; 2]);
+	/// assert_eq!(chunks.take_remainder(), bits![0; U2]);
 	/// assert!(chunks.take_remainder().is_empty());
 	/// ```
 	#[inline]

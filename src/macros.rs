@@ -10,17 +10,15 @@ mod tests;
 #[macro_export]
 #[doc = include_str!("../doc/macros/BitArr_type.md")]
 macro_rules! BitArr {
-	(for $len:expr, in $store:ty, $order:ty $(,)?) => {
-		$crate::array::BitArray::<
-			[$store; $crate::mem::elts::<$store>($len)], $order
-		>
+	(for $len:ty, in $store:ty, $order:ty $(,)?) => {
+		$crate::array::BitArray::<$store, $order, $len>
 	};
 
-	(for $len:expr, in $store:ty $(,)?) => {
+	(for $len:ty, in $store:ty $(,)?) => {
 		$crate::BitArr!(for $len, in $store, $crate::order::Lsb0)
 	};
 
-	(for $len:expr) => {
+	(for $len:ty) => {
 		$crate::BitArr!(for $len, in usize)
 	};
 }
@@ -50,36 +48,42 @@ macro_rules! bitarr {
 	//  See below.
 
 	(const Cell<$store:ident>, $order:ident; $($val:expr),* $(,)?) => {{
-		const ELTS: usize = $crate::__count_elts!($store; $($val),*);
-		type Data = [Cell<$store>; ELTS];
+		use $crate::macros::internal::generic_array::GenericArray;
+
+		type Len = $crate::__count_ty!($($val),*);
+		type Elts = <Len as $crate::mem::Elts<$store>>::Output;
+		type Data = GenericArray<Cell<$store>, Elts>;
 		const DATA: Data = $crate::__encode_bits!(Cell<$store>, $order; $($val),*);
 
-		type This = $crate::array::BitArray<Data, $order>;
-		This { data: DATA, ..This::ZERO }
+		type This = $crate::array::BitArray<Cell<$store>, $order, Len>;
+		This::new(DATA)
 	}};
 	(const $store:ident, $order:ident; $($val:expr),* $(,)?) => {{
-		const ELTS: usize = $crate::__count_elts!($store; $($val),*);
-		type Data = [$store; ELTS];
+		use $crate::macros::internal::generic_array::GenericArray;
+
+		type Len = $crate::__count_ty!($($val),*);
+		type Elts = <Len as $crate::mem::Elts<$store>>::Output;
+		type Data = GenericArray<$store, Elts>;
 		const DATA: Data = $crate::__encode_bits!($store, $order; $($val),*);
 
-		type This = $crate::array::BitArray<Data, $order>;
-		This { data: DATA, ..This::ZERO }
+		type This = $crate::array::BitArray<$store, $order, Len>;
+		This::new(DATA)
 	}};
 
 	//  Bit-repetition is agnostic to types, so it only needs two arms.
 
-	(const $store:ty, $order:ty; $val:expr; $len:expr) => {{
-		use $crate::macros::internal::core;
+	(const $store:ty, $order:ty; $val:expr; $len:ty) => {{
+		use $crate::macros::internal::generic_array::{arr, GenericArray};
 		type Mem = <$store as $crate::store::BitStore>::Mem;
 
-		const ELTS: usize = $crate::mem::elts::<$store>($len);
+		type Elts = <$len as $crate::mem::Elts<$store>>::Output;
 		const ELEM: Mem = $crate::__extend_bool!($val, $store);
-		const DATA: [Mem; ELTS] = [ELEM; ELTS];
+		const DATA: GenericArray<Mem, Elts> = arr![Mem; ELEM; Elts];
 
-		type This = $crate::array::BitArray<[$store; ELTS], $order>;
+		type This = $crate::array::BitArray<$store, $order, $len>;
 		unsafe { core::mem::transmute::<_, This>(DATA) }
 	}};
-	(const $val:expr; $len:expr) => {{
+	(const $val:expr; $len:ty) => {{
 		$crate::bitarr!(const usize, $crate::order::Lsb0; $val; $len)
 	}};
 
@@ -116,9 +120,8 @@ macro_rules! bitarr {
 		use $crate::macros::internal::core;
 		type Celled = core::cell::Cell<$store>;
 
-		const ELTS: usize = $crate::__count_elts!($store; $($val),*);
-		type Data = [Celled; ELTS];
-		type This = $crate::array::BitArray<Data, $order>;
+		type Len = $crate::__count_ty!($($val),*);
+		type This = $crate::array::BitArray<Celled, $order, Len>;
 
 		This::new($crate::__encode_bits!(Cell<$store>, $order; $($val),*))
 	}};
@@ -126,30 +129,30 @@ macro_rules! bitarr {
 		use $crate::macros::internal::core;
 		type Celled = core::cell::Cell<$store>;
 
-		const ELTS: usize = $crate::__count_elts!($store; $($val),*);
-		type This = $crate::array::BitArray<[Celled; ELTS], $order>;
+		type Len = $crate::__count_ty!($($val),*);
+		type This = $crate::array::BitArray<Celled, $order, Len>;
 
 		This::new($crate::__encode_bits!(Cell<$store>, $order; $($val),*))
 	}};
 
 	($store:ident, $order:ident; $($val:expr),* $(,)?) => {{
-		const ELTS: usize = $crate::__count_elts!($store; $($val),*);
-		type This = $crate::array::BitArray<[$store; ELTS], $order>;
+		type Len = $crate::__count_ty!($($val),*);
+		type This = $crate::array::BitArray<$store, $order, Len>;
 
 		This::new($crate::__encode_bits!($store, $order; $($val),*))
 	}};
 	($store:ident, $order:path; $($val:expr),* $(,)?) => {{
-		const ELTS: usize = $crate::__count_elts!($store; $($val),*);
-		type This = $crate::array::BitArray<[$store; ELTS], $order>;
+		type Len = $crate::__count_ty!($($val),*);
+		type This = $crate::array::BitArray<$store, $order, Len>;
 
 		This::new($crate::__encode_bits!($store, $order; $($val),*))
 	}};
 
 
-	($store:ty, $order:ty; $val:expr; $len:expr) => {{
+	($store:ty, $order:ty; $val:expr; $len:ty) => {{
 		$crate::bitarr!(const $store, $order; $val; $len)
 	}};
-	($val:expr; $len:expr) => {{
+	($val:expr; $len:ty) => {{
 		$crate::bitarr!(const $val; $len)
 	}};
 	($($val:expr),* $(,)?) => {
@@ -167,93 +170,93 @@ macro_rules! bits {
 	 * arguments that are one of the `LocalBits`, `Lsb0`, or `Msb0` literals.
 	 * Once the underlying `static BitArray` is created,
 	 */
-	(static mut Cell<$store:ident>, $order:ty; $val:expr; $len:expr) => {{
-		use $crate::macros::internal::core;
+	(static mut Cell<$store:ident>, $order:ty; $val:expr; $len:ty) => {{
+		use $crate::macros::internal::{core, generic_array::typenum::Unsigned};
 		type Celled = core::cell::Cell<$store>;
 		static mut DATA: $crate::BitArr!(for $len, in Celled, $order) =
 			$crate::bitarr!(const Cell<$store>, $order; $val; $len);
-		 &mut DATA[.. $len]
+		 &mut DATA[.. <$len as Unsigned>::USIZE]
 	}};
-	(static mut $store:ident, $order:ident; $val:expr; $len:expr) => {{
+	(static mut $store:ident, $order:ident; $val:expr; $len:ty) => {{
 		static mut DATA: $crate::BitArr!(for $len, in $store, $order) =
 			$crate::bitarr!(const $store, $order; $val; $len);
-		DATA.get_unchecked_mut(.. $len)
+		DATA.get_unchecked_mut(.. <$len as $crate::macros::internal::generic_array::typenum::Unsigned>::USIZE)
 	}};
 
 	(static mut Cell<$store:ident>, $order:ident; $($val:expr),* $(,)?) => {{
-		use $crate::macros::internal::core;
+		use $crate::macros::internal::{core, generic_array::typenum::Unsigned};
 		type Celled = core::cell::Cell<$store>;
-		const BITS: usize = $crate::__count!($($val),*);
+		type Bits = $crate::__count_ty!($($val),*);
 
-		static mut DATA: $crate::BitArr!(for BITS, in $store, $order) =
+		static mut DATA: $crate::BitArr!(for Bits, in $store, $order) =
 			$crate::bitarr!(const $store, $order; $($val),*);
 		&mut *(
-			DATA.get_unchecked_mut(.. BITS)
+			DATA.get_unchecked_mut(.. <Bits as Unsigned>::USIZE)
 				as *mut $crate::slice::BitSlice<$store, $order>
 				as *mut $crate::slice::BitSlice<Celled, $order>
 		)
 	}};
 	(static mut $store:ident, $order:ident; $($val:expr),* $(,)?) => {{
-		const BITS: usize = $crate::__count!($($val),*);
-		static mut DATA: $crate::BitArr!(for BITS, in $store, $order) =
+		type Bits = $crate::__count_ty!($($val),*);
+		static mut DATA: $crate::BitArr!(for Bits, in $store, $order) =
 			$crate::bitarr!(const $store, $order; $($val),*);
-		DATA.get_unchecked_mut(.. BITS)
+		DATA.get_unchecked_mut(.. <Bits as $crate::macros::internal::generic_array::typenum::Unsigned>::USIZE)
 	}};
 
-	(static mut $val:expr; $len:expr) => {{
+	(static mut $val:expr; $len:ty) => {{
 		static mut DATA: $crate::BitArr!(for $len) =
 			$crate::bitarr!(const usize, $crate::order::Lsb0; $val; $len);
-		DATA.get_unchecked_mut(.. $len)
+		DATA.get_unchecked_mut(.. <$len as $crate::macros::internal::generic_array::typenum::Unsigned>::USIZE)
 	}};
 	(static mut $($val:expr),* $(,)?) => {{
 		$crate::bits!(static mut usize, Lsb0; $($val),*)
 	}};
 
-	(static Cell<$store:ident>, $order:ty; $val:expr; $len:expr) => {{
-		use $crate::macros::internal::core;
+	(static Cell<$store:ident>, $order:ty; $val:expr; $len:ty) => {{
+		use $crate::macros::internal::{core, generic_array::typenum::Unsigned};
 		type Celled = core::cell::Cell<$store>;
 		static DATA: $crate::BitArr!(for $len, in $store, $order) =
 			$crate::bitarr!(const $store, $order; $val; $len);
 		unsafe {
 			&*(
-				DATA.get_unchecked(.. $len)
+				DATA.get_unchecked(.. <$len as Unsigned>::USIZE)
 					as *const $crate::slice::BitSlice<$store, $order>
 					as *const $crate::slice::BitSlice<Celled, $order>
 			)
 		}
 	}};
 	(static Cell<$store:ident>, $order:ident; $($val:expr),* $(,)?) => {{
-		use $crate::macros::internal::core;
+		use $crate::macros::internal::{core, generic_array::typenum::Unsigned};
 		type Celled = core::cell::Cell<$store>;
-		const BITS: usize = $crate::__count!($($val),*);
+		type Bits = $crate::__count_ty!($($val),*);
 
-		static DATA: $crate::BitArr!(for BITS, in $store, $order) =
+		static DATA: $crate::BitArr!(for Bits, in $store, $order) =
 			$crate::bitarr!(const $store, $order; $($val),*);
 		unsafe {
 			&*(
-				DATA.get_unchecked(.. BITS)
+				DATA.get_unchecked(.. <Bits as Unsigned>::USIZE)
 					as *const $crate::slice::BitSlice<$store, $order>
 					as *const $crate::slice::BitSlice<Celled, $order>
 			)
 		}
 	}};
 
-	(static $store:ident, $order:ident; $val:expr; $len:expr) => {{
+	(static $store:ident, $order:ident; $val:expr; $len:ty) => {{
 		static DATA: $crate::BitArr!(for $len, in $store, $order) =
 			$crate::bitarr!(const $store, $order; $val; $len);
-		unsafe { DATA.get_unchecked(.. $len) }
+		unsafe { DATA.get_unchecked(.. <$len as $crate::macros::internal::generic_array::typenum::Unsigned>::USIZE) }
 	}};
-	(static $val:expr; $len:expr) => {{
+	(static $val:expr; $len:ty) => {{
 		static DATA: $crate::BitArr!(for $len) =
 			$crate::bitarr!(const usize, $crate::order::Lsb0; $val; $len);
-		unsafe { DATA.get_unchecked(.. $len) }
+		unsafe { DATA.get_unchecked(.. <$len as $crate::macros::internal::generic_array::typenum::Unsigned>::USIZE) }
 	}};
 
 	(static $store:ident, $order:ident; $($val:expr),* $(,)?) => {{
-		const BITS: usize = $crate::__count!($($val),*);
-		static DATA: $crate::BitArr!(for BITS, in $store, $order) =
+		type Bits = $crate::__count_ty!($($val),*);
+		static DATA: $crate::BitArr!(for Bits, in $store, $order) =
 			$crate::bitarr!(const $store, $order; $($val),*);
-		unsafe { DATA.get_unchecked(.. BITS) }
+		unsafe { DATA.get_unchecked(.. <Bits as $crate::macros::internal::generic_array::typenum::Unsigned>::USIZE) }
 	}};
 	(static $($val:expr),* $(,)?) => {{
 		$crate::bits!(static usize, Lsb0; $($val),*)
@@ -285,11 +288,11 @@ macro_rules! bits {
 	}};
 
 	//  Explicit order and store.
-	(mut $store:ty, $order:ty; $val:expr; $len:expr) => {{
-		&mut $crate::bitarr!($store, $order; $val; $len)[.. $len]
+	(mut $store:ty, $order:ty; $val:expr; $len:ty) => {{
+		&mut $crate::bitarr!($store, $order; $val; $len)[.. <$len as $crate::macros::internal::generic_array::typenum::Unsigned>::USIZE]
 	}};
 	//  Default order and store.
-	(mut $val:expr; $len:expr) => {
+	(mut $val:expr; $len:ty) => {
 		$crate::bits!(mut usize, $crate::order::Lsb0; $val; $len)
 	};
 
@@ -300,8 +303,8 @@ macro_rules! bits {
 
 	//  Repeat everything from above, but now immutable.
 
-	($store:ty, $order:ty; $val:expr; $len:expr) => {{
-		&$crate::bitarr!($store, $order; $val; $len)[.. $len]
+	($store:ty, $order:ty; $val:expr; $len:ty) => {{
+		&$crate::bitarr!($store, $order; $val; $len)[.. <$len as $crate::macros::internal::generic_array::typenum::Unsigned>::USIZE]
 	}};
 
 	(Cell<$store:ident>, $order:ident; $($val:expr),* $(,)?) => {{
@@ -323,7 +326,7 @@ macro_rules! bits {
 	}};
 
 	//  Default order and store.
-	($val:expr; $len:expr) => {
+	($val:expr; $len:ty) => {
 		$crate::bits!(usize, $crate::order::Lsb0; $val; $len)
 	};
 	($($val:expr),* $(,)?) => {

@@ -537,11 +537,11 @@ where
 	/// let bits = data.view_bits::<Msb0>();
 	///
 	/// let mut bv = bits[2 .. 6].to_bitvec();
-	/// assert_eq!(bv, bits![1; 4]);
+	/// assert_eq!(bv, bits![1; U4]);
 	/// assert_eq!(bv.as_raw_slice()[0], data);
 	///
 	/// bv.force_align();
-	/// assert_eq!(bv, bits![1; 4]);
+	/// assert_eq!(bv, bits![1; U4]);
 	/// // BitVec does not specify the value of dead bits in its buffer.
 	/// assert_eq!(bv.as_raw_slice()[0] & 0xF0, 0xF0);
 	/// ```
@@ -635,7 +635,7 @@ where
 		self.with_vec(|vec| {
 			func(&mut **vec, extra_elts);
 			//  Ensure that any new elements are initialized.
-			vec.resize_with(new_elts, || <T as BitStore>::ZERO);
+			vec.resize_with(new_elts, || T::ZERO);
 		});
 	}
 

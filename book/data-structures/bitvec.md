@@ -25,10 +25,10 @@ use bitvec::prelude::*;
 
 let a: BitVec = BitVec::new();
 let b = bits![0, 1, 0, 1].to_bitvec();
-let c = bits![0; 4].clone();
-let d = bits![u8, Msb0; 1; 4].to_owned();
+let c = bits![0; U4].clone();
+let d = bits![u8, Msb0; 1; U4].to_owned();
 let e = bitvec![0, 1, 1, 0];
-let f = bitvec![u16, Msb0; 0; 4];
+let f = bitvec![u16, Msb0; 0; U4];
 let g = [true, false, true, false]
   .iter() // &bool
   .copied() // bool

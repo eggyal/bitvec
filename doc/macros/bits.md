@@ -62,7 +62,7 @@ the same underlying buffer.
 use bitvec::prelude::*;
 
 fn unsound() -> &'static mut BitSlice<usize, Lsb0> {
-  unsafe { bits![static mut 0; 64] }
+  unsafe { bits![static mut 0; U64] }
 }
 
 let a = unsound();
@@ -89,13 +89,13 @@ use radium::types::*;
 
 let a: &BitSlice = bits![0, 1, 0, 0, 1];
 
-let b: &BitSlice = bits![1; 5];
+let b: &BitSlice = bits![1; U5];
 assert_eq!(b.len(), 5);
 
 let c = bits![u16, Lsb0; 0, 1, 0, 0, 1];
-let d = bits![static Cell<u16>, Msb0; 1; 10];
-let e = unsafe { bits![static mut u32, LocalBits; 0; 15] };
-let f = bits![RadiumU32, Msb0; 1; 20];
+let d = bits![static Cell<u16>, Msb0; 1; U10];
+let e = unsafe { bits![static mut u32, LocalBits; 0; U15] };
+let f = bits![RadiumU32, Msb0; 1; U20];
 ```
 
 [`BitSlice`]: crate::slice::BitSlice

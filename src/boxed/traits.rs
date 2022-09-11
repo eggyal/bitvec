@@ -29,11 +29,11 @@ use tap::Pipe;
 use super::BitBox;
 use crate::{
 	array::BitArray,
+	mem::Elts,
 	order::BitOrder,
 	slice::BitSlice,
 	store::BitStore,
 	vec::BitVec,
-	view::BitViewSized,
 };
 
 #[cfg(not(tarpaulin_include))]
@@ -237,13 +237,14 @@ where
 	}
 }
 
-impl<A, O> From<BitArray<A, O>> for BitBox<A::Store, O>
+impl<S, O, N> From<BitArray<S, O, N>> for BitBox<S, O>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
 	#[inline]
-	fn from(array: BitArray<A, O>) -> Self {
+	fn from(array: BitArray<S, O, N>) -> Self {
 		array.as_bitslice().pipe(Self::from_bitslice)
 	}
 }

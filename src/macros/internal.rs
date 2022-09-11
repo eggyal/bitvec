@@ -8,6 +8,8 @@ pub use core;
 
 #[doc(hidden)]
 pub use funty;
+#[doc(hidden)]
+pub use generic_array;
 
 #[doc(hidden)]
 #[macro_export]
@@ -87,9 +89,9 @@ macro_rules! __encode_bits {
 	//  This arm routes `usize` into `u32` or `u64`, depending on target, and
 	//  marks them to return to `usize` after chunking.
 	($typ:ty as usize, $ord:tt; $($val:expr),*) => {{
-		const LEN: usize = $crate::__count_elts!(usize; $($val),*);
+		type Len = $crate::__count_elts_ty!(usize; $($val),*);
 
-		let out: [$typ; LEN];
+		let out: $crate::macros::internal::generic_array::GenericArray<$typ, Len>;
 
 		#[cfg(target_pointer_width = "32")]
 		{
@@ -132,13 +134,13 @@ macro_rules! __encode_bits {
 		$typ:ty as $uint:ident as usize, $ord:tt;
 		[$([$($bit:tt,)+],)*]; $(0,)*
 	) => {
-		[$($crate::__make_elem!($typ as $uint as usize, $ord; $($bit,)+),)*]
+		$crate::macros::internal::generic_array::arr![$typ; $($crate::__make_elem!($typ as $uint as usize, $ord; $($bit,)+),)*]
 	};
 	(
 		$typ:ty as $uint:ident, $ord:tt;
 		[$([$($bit:tt,)+],)*]; $(0,)*
 	) => {
-		[$($crate::__make_elem!($typ as $uint, $ord; $($bit,)+),)*]
+		$crate::macros::internal::generic_array::arr![$typ; $($crate::__make_elem!($typ as $uint, $ord; $($bit,)+),)*]
 	};
 
 	/* CHUNKERS
@@ -230,12 +232,33 @@ macro_rules! __count {
 	}};
 }
 
+/// Counts the number of expression tokens in a repetition sequence.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __count_ty {
+	() => { $crate::macros::internal::generic_array::typenum::U0 };
+	($val:expr$(, $vals:expr)* $(,)?) => {
+		$crate::macros::internal::generic_array::typenum::Add1<
+			$crate::__count_ty!($($vals),*)
+		>
+	};
+}
+
 /// Counts the number of storage elements needed to store a bit sequence.
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __count_elts {
 	($t:ty; $($val:expr),*) => {
 		$crate::mem::elts::<$t>($crate::__count!($($val),*))
+	};
+}
+
+/// Counts the number of storage elements needed to store a bit sequence.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __count_elts_ty {
+	($t:ty; $($val:expr),*) => {
+		<$crate::__count_ty!($($val),*) as $crate::mem::Elts<$t>>::Output
 	};
 }
 

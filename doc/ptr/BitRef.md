@@ -31,7 +31,7 @@ an item definition.
 ```rust
 use bitvec::prelude::*;
 
-let bits = bits![mut 0; 2];
+let bits = bits![mut 0; U2];
 
 let (left, right) = bits.split_at_mut(1);
 let mut first = left.get_mut(0).unwrap();
@@ -43,7 +43,7 @@ let second = right.get_mut(0).unwrap();
 second.commit(true);
 
 drop(first); // It’s not a reference, so NLL does not apply!
-assert_eq!(bits, bits![1; 2]);
+assert_eq!(bits, bits![1; U2]);
 ```
 
 [0]: https://en.cppreference.com/w/cpp/utility/bitset/reference

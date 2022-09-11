@@ -31,7 +31,7 @@ macro_rules! qprintln {
 	};
 }
 
-type Ipv4Header = BitArray<[u8; 20], Msb0>;
+type Ipv4Header = BitArray<u8, Msb0, U160>;
 
 /// Build up an IPv4 packet
 fn build() -> Ipv4Header {

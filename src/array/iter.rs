@@ -15,21 +15,22 @@ use wyz::comu::Const;
 
 use super::BitArray;
 use crate::{
-	mem,
+	mem::Elts,
 	order::BitOrder,
 	ptr::BitPtr,
 	slice::BitSlice,
-	view::BitViewSized,
+	store::BitStore,
 };
 
 /// [Original](https://doc.rust-lang.org/std/primitive.array.html#impl-IntoIterator)
-impl<A, O> IntoIterator for BitArray<A, O>
+impl<S, O, N> IntoIterator for BitArray<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
-	type IntoIter = IntoIter<A, O>;
-	type Item = <IntoIter<A, O> as Iterator>::Item;
+	type IntoIter = IntoIter<S, O, N>;
+	type Item = <IntoIter<S, O, N> as Iterator>::Item;
 
 	#[inline]
 	fn into_iter(self) -> Self::IntoIter {
@@ -39,13 +40,14 @@ where
 
 /// [Original](https://doc.rust-lang.org/std/primitive.array.html#impl-IntoIterator-1)
 #[cfg(not(tarpaulin_include))]
-impl<'a, A, O> IntoIterator for &'a BitArray<A, O>
+impl<'a, S, O, N> IntoIterator for &'a BitArray<S, O, N>
 where
 	O: BitOrder,
-	A: 'a + BitViewSized,
+	S: 'a + BitStore,
+	N: Elts<S>,
 {
-	type IntoIter = <&'a BitSlice<A::Store, O> as IntoIterator>::IntoIter;
-	type Item = <&'a BitSlice<A::Store, O> as IntoIterator>::Item;
+	type IntoIter = <&'a BitSlice<S, O> as IntoIterator>::IntoIter;
+	type Item = <&'a BitSlice<S, O> as IntoIterator>::Item;
 
 	#[inline]
 	fn into_iter(self) -> Self::IntoIter {
@@ -55,13 +57,14 @@ where
 
 /// [Original](https://doc.rust-lang.org/std/primitive.array.html#impl-IntoIterator-2)
 #[cfg(not(tarpaulin_include))]
-impl<'a, A, O> IntoIterator for &'a mut BitArray<A, O>
+impl<'a, S, O, N> IntoIterator for &'a mut BitArray<S, O, N>
 where
 	O: BitOrder,
-	A: 'a + BitViewSized,
+	S: 'a + BitStore,
+	N: Elts<S>,
 {
-	type IntoIter = <&'a mut BitSlice<A::Store, O> as IntoIterator>::IntoIter;
-	type Item = <&'a mut BitSlice<A::Store, O> as IntoIterator>::Item;
+	type IntoIter = <&'a mut BitSlice<S, O> as IntoIterator>::IntoIter;
+	type Item = <&'a mut BitSlice<S, O> as IntoIterator>::Item;
 
 	#[inline]
 	fn into_iter(self) -> Self::IntoIter {
@@ -69,25 +72,41 @@ where
 	}
 }
 
-#[derive(Clone)]
 #[doc = include_str!("../../doc/array/IntoIter.md")]
-pub struct IntoIter<A, O>
+pub struct IntoIter<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
 	/// The bit-array being iterated.
-	array: BitArray<A, O>,
+	array: BitArray<S, O, N>,
 	/// The indices in `.array` that have not yet been yielded.
 	///
 	/// This range is always a strict subset of `0 .. self.array.len()`.
 	alive: Range<usize>,
 }
 
-impl<A, O> IntoIter<A, O>
+impl<S, O, N> Clone for IntoIter<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
+	BitArray<S, O, N>: Clone,
+{
+	fn clone(&self) -> Self {
+		Self {
+			array: self.array.clone(),
+			alive: self.alive.clone(),
+		}
+	}
+}
+
+impl<S, O, N> IntoIter<S, O, N>
+where
+	S: BitStore,
+	O: BitOrder,
+	N: Elts<S>,
 {
 	/// Converts a bit-array into its iterator.
 	///
@@ -100,10 +119,10 @@ where
 	///
 	/// [`IntoIter::new`](core::array::IntoIter::new)s
 	#[inline]
-	pub fn new(array: BitArray<A, O>) -> Self {
+	pub fn new(array: BitArray<S, O, N>) -> Self {
 		Self {
 			array,
-			alive: 0 .. mem::bits_of::<A>(),
+			alive: 0 .. N::USIZE,
 		}
 	}
 
@@ -113,7 +132,7 @@ where
 	///
 	/// [`IntoIter::as_slice`](core::array::IntoIter::as_slice)
 	#[inline]
-	pub fn as_bitslice(&self) -> &BitSlice<A::Store, O> {
+	pub fn as_bitslice(&self) -> &BitSlice<S, O> {
 		unsafe { self.array.as_bitslice().get_unchecked(self.alive.clone()) }
 	}
 
@@ -121,7 +140,7 @@ where
 	#[cfg(not(tarpaulin_include))]
 	#[deprecated = "use `.as_bitslice()` instead"]
 	#[allow(missing_docs, clippy::missing_docs_in_private_items)]
-	pub fn as_slice(&self) -> &BitSlice<A::Store, O> {
+	pub fn as_slice(&self) -> &BitSlice<S, O> {
 		self.as_bitslice()
 	}
 
@@ -131,7 +150,7 @@ where
 	///
 	/// [`IntoIter::as_mut_slice`](core::array::IntoIter::as_mut_slice)
 	#[inline]
-	pub fn as_mut_bitslice(&mut self) -> &mut BitSlice<A::Store, O> {
+	pub fn as_mut_bitslice(&mut self) -> &mut BitSlice<S, O> {
 		unsafe {
 			self.array
 				.as_mut_bitslice()
@@ -143,7 +162,7 @@ where
 	#[cfg(not(tarpaulin_include))]
 	#[deprecated = "use `.as_bitslice_mut()` instead"]
 	#[allow(missing_docs, clippy::missing_docs_in_private_items)]
-	pub fn as_mut_slice(&mut self) -> &mut BitSlice<A::Store, O> {
+	pub fn as_mut_slice(&mut self) -> &mut BitSlice<S, O> {
 		self.as_mut_bitslice()
 	}
 
@@ -153,7 +172,7 @@ where
 		unsafe {
 			self.array
 				.as_raw_slice()
-				.pipe(BitPtr::<Const, A::Store, O>::from_slice)
+				.pipe(BitPtr::<Const, S, O>::from_slice)
 				.add(index)
 				.read()
 		}
@@ -161,10 +180,11 @@ where
 }
 
 #[cfg(not(tarpaulin_include))]
-impl<A, O> Debug for IntoIter<A, O>
+impl<S, O, N> Debug for IntoIter<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
 	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
@@ -174,10 +194,11 @@ where
 	}
 }
 
-impl<A, O> Iterator for IntoIter<A, O>
+impl<S, O, N> Iterator for IntoIter<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
 	type Item = bool;
 
@@ -194,10 +215,11 @@ where
 	}
 }
 
-impl<A, O> DoubleEndedIterator for IntoIter<A, O>
+impl<S, O, N> DoubleEndedIterator for IntoIter<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
 	#[inline]
 	fn next_back(&mut self) -> Option<Self::Item> {
@@ -210,10 +232,11 @@ where
 	}
 }
 
-impl<A, O> ExactSizeIterator for IntoIter<A, O>
+impl<S, O, N> ExactSizeIterator for IntoIter<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
 	#[inline]
 	fn len(&self) -> usize {
@@ -221,9 +244,10 @@ where
 	}
 }
 
-impl<A, O> FusedIterator for IntoIter<A, O>
+impl<S, O, N> FusedIterator for IntoIter<S, O, N>
 where
-	A: BitViewSized,
+	S: BitStore,
 	O: BitOrder,
+	N: Elts<S>,
 {
 }

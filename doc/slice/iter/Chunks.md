@@ -20,8 +20,8 @@ use bitvec::prelude::*;
 let bits = bits![0, 0, 0, 1, 1, 1, 0, 1];
 let mut chunks = bits.chunks(3);
 
-assert_eq!(chunks.next().unwrap(), bits![0; 3]);
-assert_eq!(chunks.next().unwrap(), bits![1; 3]);
+assert_eq!(chunks.next().unwrap(), bits![0; U3]);
+assert_eq!(chunks.next().unwrap(), bits![1; U3]);
 assert_eq!(chunks.next().unwrap(), bits![0, 1]);
 assert!(chunks.next().is_none());
 ```

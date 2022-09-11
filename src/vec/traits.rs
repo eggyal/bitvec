@@ -31,10 +31,10 @@ use super::BitVec;
 use crate::{
 	array::BitArray,
 	boxed::BitBox,
+	mem::Elts,
 	order::BitOrder,
 	slice::BitSlice,
 	store::BitStore,
-	view::BitViewSized,
 };
 
 #[cfg(not(tarpaulin_include))]
@@ -275,13 +275,14 @@ where
 }
 
 #[cfg(not(tarpaulin_include))]
-impl<A, O> From<BitArray<A, O>> for BitVec<A::Store, O>
+impl<S, O, N> From<BitArray<S, O, N>> for BitVec<S, O>
 where
 	O: BitOrder,
-	A: BitViewSized,
+	S: BitStore,
+	N: Elts<S>,
 {
 	#[inline]
-	fn from(array: BitArray<A, O>) -> Self {
+	fn from(array: BitArray<S, O, N>) -> Self {
 		array.as_bitslice().to_owned()
 	}
 }

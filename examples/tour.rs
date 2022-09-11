@@ -5,6 +5,7 @@ a sample of the various operations that can be applied to it.
 
 This example prints **a lot** of text to the console.
 !*/
+#![recursion_limit = "256"]
 
 use bitvec::prelude::{
 	bits,
@@ -14,6 +15,7 @@ use bitvec::prelude::{
 	BitVec,
 	Lsb0,
 	Msb0,
+	U132,
 };
 
 macro_rules! qprintln {
@@ -64,11 +66,11 @@ fn main() {
 	render(&bv);
 
 	qprintln!("BitVec can participate in Boolean arithmetic");
-	let full = bv.clone() | bits![1; 132];
+	let full = bv.clone() | bits![1; U132];
 	render(&full);
-	let empty = full & bits![0; 132];
+	let empty = full & bits![0; U132];
 	render(&empty);
-	let flip = bv ^ bits![1; 132];
+	let flip = bv ^ bits![1; U132];
 	render(&flip);
 	let bv = !flip;
 	render(&bv);

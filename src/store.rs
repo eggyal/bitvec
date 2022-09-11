@@ -6,6 +6,18 @@ use core::{
 };
 
 use funty::Integral;
+#[cfg(target_pointer_width = "16")]
+pub use generic_array::typenum::U16 as USize;
+#[cfg(target_pointer_width = "32")]
+pub use generic_array::typenum::U32 as USize;
+#[cfg(target_pointer_width = "64")]
+pub use generic_array::typenum::U64 as USize;
+use generic_array::typenum::{
+	U16,
+	U32,
+	U64,
+	U8,
+};
 
 use crate::{
 	access::*,
@@ -37,7 +49,8 @@ pub trait BitStore: 'static + Debug {
 	/// The inverse of `::Alias`. It is used when a `BitSlice` removes the
 	/// conditions that required a `T -> T::Alias` transition.
 	type Unalias: BitStore<Mem = Self::Mem>;
-
+	/// The number of bits that can be held in this `BitStore`.
+	type Size;
 	/// The zero constant.
 	const ZERO: Self;
 
@@ -97,7 +110,7 @@ pub trait BitStore: 'static + Debug {
 
 /// Generates `BitStore` implementations for ordinary integers and `Cell`s.
 macro_rules! store {
-	($($base:ty => $safe:ty);+ $(;)?) => { $(
+	($($base:ty => $safe:ty, $sizety:ty);+ $(;)?) => { $(
 		impl BitStore for $base {
 			type Mem = Self;
 			/// The unsigned integers will only be `BitStore` type parameters
@@ -106,7 +119,7 @@ macro_rules! store {
 			type Access = Cell<Self>;
 			type Alias = $safe;
 			type Unalias = Self;
-
+			type Size = $sizety;
 			const ZERO: Self = 0;
 
 			#[inline]
@@ -134,7 +147,7 @@ macro_rules! store {
 			type Access = <Self as BitSafe>::Rad;
 			type Alias = Self;
 			type Unalias = $base;
-
+			type Size = $sizety;
 			const ZERO: Self = <Self as BitSafe>::ZERO;
 
 			#[inline]
@@ -161,7 +174,7 @@ macro_rules! store {
 			type Access = Self;
 			type Alias = Self;
 			type Unalias = Self;
-
+			type Size = $sizety;
 			const ZERO: Self = Self::new(0);
 
 			#[inline]
@@ -186,19 +199,19 @@ macro_rules! store {
 }
 
 store! {
-	u8 => BitSafeU8;
-	u16 => BitSafeU16;
-	u32 => BitSafeU32;
+	u8 => BitSafeU8, U8;
+	u16 => BitSafeU16, U16;
+	u32 => BitSafeU32, U32;
 }
 
 #[cfg(target_pointer_width = "64")]
-store!(u64 => BitSafeU64);
+store!(u64 => BitSafeU64, U64);
 
-store!(usize => BitSafeUsize);
+store!(usize => BitSafeUsize, USize);
 
 /// Generates `BitStore` implementations for atomic types.
 macro_rules! atomic {
-	($($size:tt, $base:ty => $atom:ident);+ $(;)?) => { $(
+	($($size:tt, $base:ty => $atom:ident, $sizety:ty);+ $(;)?) => { $(
 		radium::if_atomic!(if atomic($size) {
 			use core::sync::atomic::$atom;
 
@@ -207,7 +220,7 @@ macro_rules! atomic {
 				type Access = Self;
 				type Alias = Self;
 				type Unalias = Self;
-
+				type Size = $sizety;
 				const ZERO: Self = <Self>::new(0);
 
 				#[inline]
@@ -233,15 +246,15 @@ macro_rules! atomic {
 }
 
 atomic! {
-	8, u8 => AtomicU8;
-	16, u16 => AtomicU16;
-	32, u32 => AtomicU32;
+	8, u8 => AtomicU8, U8;
+	16, u16 => AtomicU16, U16;
+	32, u32 => AtomicU32, U32;
 }
 
 #[cfg(target_pointer_width = "64")]
-atomic!(64, u64 => AtomicU64);
+atomic!(64, u64 => AtomicU64, U64);
 
-atomic!(size, usize => AtomicUsize);
+atomic!(size, usize => AtomicUsize, USize);
 
 #[cfg(test)]
 mod tests {

@@ -3,10 +3,29 @@
 use core::{
 	cell::Cell,
 	mem,
+	ops::{
+		Add,
+		Div,
+		Rem,
+	},
 };
 
 use funty::Unsigned;
+use generic_array::{
+	typenum::{
+		IsNotEqual,
+		Mod,
+		NotEq,
+		Quot,
+		Sum,
+		Unsigned as TnUnsigned,
+		U0,
+	},
+	ArrayLength,
+};
 use radium::marker::BitOps;
+
+use crate::store::BitStore;
 
 #[doc = include_str!("../doc/mem/BitRegister.md")]
 pub trait BitRegister: Unsigned + BitOps {
@@ -45,6 +64,23 @@ register!(usize);
 /// Counts the number of bits in a value of type `T`.
 pub const fn bits_of<T>() -> usize {
 	core::mem::size_of::<T>().saturating_mul(<u8>::BITS as usize)
+}
+
+/// A type-level version of [`elts`].
+pub trait Elts<T: BitStore>: TnUnsigned {
+	/// The number of `T` elements required to hold `Self` bits.
+	type Output: ArrayLength<T>;
+}
+
+impl<T, Bits> Elts<T> for Bits
+where
+	T: BitStore,
+	Bits: TnUnsigned + Div<T::Size> + Rem<T::Size>,
+	Mod<Bits, T::Size>: IsNotEqual<U0>,
+	Quot<Bits, T::Size>: Add<NotEq<Mod<Bits, T::Size>, U0>>,
+	Sum<Quot<Bits, T::Size>, NotEq<Mod<Bits, T::Size>, U0>>: ArrayLength<T>,
+{
+	type Output = Sum<Quot<Bits, T::Size>, NotEq<Mod<Bits, T::Size>, U0>>;
 }
 
 #[doc = include_str!("../doc/mem/elts.md")]

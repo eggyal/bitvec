@@ -14,13 +14,13 @@ fn serdes_slice() {
 
 #[test]
 fn serdes_array() {
-	let bits = [0x07u8, 0x15].into_bitarray::<Lsb0>();
+	let bits = arr![u8; 0x07, 0x15].into_bitarray::<Lsb0, U16>();
 	let json = serde_json::to_string(&bits).unwrap();
 	assert_eq!(
 		json.trim(),
 		r#"{"order":"bitvec::order::Lsb0","head":{"width":8,"index":0},"bits":16,"data":[7,21]}"#,
 	);
-	let deser: BitArr![for 16, in u8, Lsb0] =
+	let deser: BitArr![for U16, in u8, Lsb0] =
 		serde_json::from_str(&json).unwrap();
 	assert_eq!(bits, deser);
 }

@@ -58,7 +58,7 @@ consequence of the implementation, and likely will not be relaxed. `BitBox` and
 `usize` *does* de/serialize! However, because it does not have a fixed width,
 `bitvec` always serializes it as the local fixed-width equivalent, and places
 the word width into the serialization stream. This will prevent roundtripping a
-`BitArray<[usize; N]>` between hosts with different `usize` widths, even though
+`BitArray<usize, _, N>` between hosts with different `usize` widths, even though
 the types in the source code line up.
 
 This behavior was not present in version 0, and users were able to write
@@ -91,7 +91,7 @@ with four fields:
       `BitSlice` region. `BitArray` will refuse to deserialize if this is not
       zero.
 1. `bits` is the number of live bits in the region, as a `u64`. `BitArray` fails
-   to deserialize if it does not match [`mem::bits_of::<A>()`][1].
+   to deserialize if it does not match its `N` parameter.
 1. `data` is the actual data buffer containing the bits being transported. For
    `BitSeq` serialization, it is a sequence; for `BitArr`, it is a tuple. This
    may affect the transport representation, and so the two are not guaranteed to
@@ -117,5 +117,4 @@ You should always deserialize into the same container type that produced a
 serialized stream.
 
 [0]: core::any::type_name
-[1]: crate::mem::bits_of
 [`bincode`]: https://docs.rs/bincode/latest/bincode

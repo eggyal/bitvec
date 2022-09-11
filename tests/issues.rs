@@ -368,7 +368,7 @@ fn issue_170() {
 	use std::io::Read;
 
 	let mut data: Vec<u8> = vec![0; 1];
-	let bytes = bits![0; 8]
+	let bytes = bits![0; U8]
 		.to_bitvec()
 		.read(&mut data)
 		.expect("read should not fail");

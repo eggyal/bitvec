@@ -7,14 +7,14 @@ use test::Bencher;
 
 #[bench]
 fn iter_mut(b: &mut Bencher) {
-	let mut bits = bitarr![0; 500];
+	let mut bits = bitarr![0; U500];
 	b.iter(|| bits.iter_mut().for_each(|mut b| *b = !*b));
 }
 
 #[bench]
 #[allow(deprecated)]
 fn native_for_each(b: &mut Bencher) {
-	let mut bits = bitarr![0; 500];
+	let mut bits = bitarr![0; U500];
 	b.iter(|| bits.for_each(|_, b| !b));
 }
 

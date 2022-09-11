@@ -107,7 +107,7 @@ where
 	/// let boxed: Box<[u8]> = Box::new([0; 40]);
 	/// let addr = boxed.as_ptr();
 	/// let bb = BitBox::<u8>::from_boxed_slice(boxed);
-	/// assert_eq!(bb, bits![0; 320]);
+	/// assert_eq!(bb, bits![0; U320]);
 	/// assert_eq!(addr, bb.as_raw_slice().as_ptr());
 	/// ```
 	#[inline]
@@ -134,7 +134,7 @@ where
 	/// let boxed: Box<[u8]> = Box::new([0u8; 40]);
 	/// let addr = boxed.as_ptr();
 	/// let bb = BitBox::<u8>::try_from_boxed_slice(boxed).unwrap();
-	/// assert_eq!(bb, bits![0; 320]);
+	/// assert_eq!(bb, bits![0; U320]);
 	/// assert_eq!(addr, bb.as_raw_slice().as_ptr());
 	/// ```
 	///

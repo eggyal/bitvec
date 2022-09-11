@@ -19,7 +19,7 @@ mod traits;
 #[test]
 #[allow(clippy::many_single_char_names)]
 fn copying() {
-	let a = bits![mut u8, Lsb0; 0; 4];
+	let a = bits![mut u8, Lsb0; 0; U4];
 	let b = bits![u16, Msb0; 0, 1, 0, 1];
 	a.clone_from_bitslice(b);
 	assert_eq!(a, b);
@@ -77,17 +77,17 @@ fn copying() {
 
 #[test]
 fn writing() {
-	let bits = bits![mut 0; 2];
+	let bits = bits![mut 0; U2];
 
 	bits.set(0, true);
 	unsafe {
 		bits.set_unchecked(1, true);
 	}
-	assert_eq!(bits, bits![1;2]);
+	assert_eq!(bits, bits![1;U2]);
 
 	assert!(bits.replace(0, false));
 	assert!(unsafe { bits.replace_unchecked(1, false) });
-	assert_eq!(bits, bits![0;2]);
+	assert_eq!(bits, bits![0;U2]);
 }
 
 #[test]
@@ -117,9 +117,9 @@ fn bit_counting() {
 	assert!(bits![0, 1].not_all());
 	assert!(!bits![1, 1].not_all());
 
-	assert!(!bits![0; 2].some());
+	assert!(!bits![0; U2].some());
 	assert!(bits![0, 1].some());
-	assert!(!bits![1; 2].some());
+	assert!(!bits![1; U2].some());
 
 	assert!(bits![usize, Lsb0;].first_one().is_none());
 	assert!(bits![usize, Msb0;].first_one().is_none());
@@ -220,7 +220,7 @@ fn shunting() {
 	bits.shift_right(0);
 	assert_eq!(bits, bits![0, 1, 0, 0, 1]);
 
-	let bits = bits![mut 1;5];
+	let bits = bits![mut 1;U5];
 	bits.shift_left(1);
 	bits.shift_right(2);
 	bits.shift_left(1);

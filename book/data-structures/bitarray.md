@@ -3,20 +3,19 @@
 While `BitSlice` describes a region of borrowed data, `BitArray` provides a
 container that can hold and manage such a region.
 
-It is most comparable to the C++ type [`std::bitset<N>`]. Unfortunately, the
-Rust support for type-level integers is still experimental, so it is unable to
-take the length of the `BitSlice` it contains as a type parameter. Instead, it
-must take the entire region it contains as a type parameter. The full type
-declaration is
+It is most comparable to the C++ type [`std::bitset<N>`]. It takes the length
+of the `BitSlice` as a type-level integer from the `typenum` crate. The full
+type declaration is
 
 ```rust,ignore
 # use bitvec::prelude::*;
 pub struct BitArray<
-  A: BitViewSized,
+  S: BitStore,
   O: BitOrder,
+  N: Elts<S>,
 > {
   _ord: PhantomData<O>,
-  data: A,
+  data: GenericArray<S, N::Output>,
 }
 ```
 
@@ -25,9 +24,12 @@ the unsigned integers, and on arrays of them. Currently, array support is
 limited to arrays up to and including 32 elements long; as Rust type-level
 integers mature, this will grow to include all arrays.
 
-> Once type-level computation stabilizes, `BitArray` will change to have the
-> type parameters `<T: BitStore, O: BitOrder, const N: usize>`, matching the
-> `std::bitset<N>` length parameter.
+> Exact bit lengths are currently encoded into the `BitArray` type via type-level
+> integers from the typenum crate.  The const-generics system in the compiler is
+> a better approach, but cannot be used without type-level computation on type
+> integers. When this stabilizes, `bitvec` will issue a major upgrade that
+> replaces the `BitArray<S, O, N>` definition with `BitArray<S, O, const N: usize>`
+> and match the C++ `std::bitset<N>` definition.
 
 This array dereferences to a `BitSlice` region over its entire length. It does
 not currently permit shortening its `BitSlice` from either end. If this is a
@@ -51,7 +53,7 @@ borrow its data as a `BitSlice`. The array has almost no functionality of its
 own, and serves only to own a region used as a `BitSlice`.
 
 Once you are done using `BitSlice` to manipulate the array, you can remove the
-array with `.into_inner()` and regain the `A` memory within.
+array with `.into_inner()` and regain the `GenericArray` memory within.
 
 That’s everything that the array does! Like regular arrays, it is useful
 primarily for its ability to move memory through a program, and has essentially

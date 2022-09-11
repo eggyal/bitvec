@@ -229,7 +229,7 @@ appropriate buffer in the local scope. The macro expands to a borrowed
 use bitvec::prelude::*;
 
 let immut = bits![u8, Lsb0; 0, 1, 0, 0, 1, 0, 0, 1];
-let mutable: &mut BitSlice<_, _> = bits![mut u8, Msb0; 0; 8];
+let mutable: &mut BitSlice<_, _> = bits![mut u8, Msb0; 0; U8];
 
 assert_ne!(immut, mutable);
 mutable.clone_from_bitslice(immut);
@@ -285,17 +285,16 @@ the borrowing constructors.
 ```rust
 use bitvec::prelude::*;
 
-let slice = bits![0; 27];
-let array = bitarr![u8, LocalBits; 0; 10];
+let slice = bits![0; U27];
+let array = bitarr![u8, LocalBits; 0; U10];
 # #[cfg(feature = "alloc")] fn allocates() {
 let boxed = bitbox![0; 10];
 let vec = bitvec![0; 20];
 # } #[cfg(feature = "alloc")] allocates();
 
-// arrays always round up
-assert_eq!(array.as_bitslice(), slice[.. 16]);
+assert_eq!(array.as_bitslice(), slice[.. 10]);
 # #[cfg(feature = "alloc")] fn allocates2() {
-# let slice = bits![0; 27];
+# let slice = bits![0; U27];
 # let boxed = bitbox![0; 10];
 # let vec = bitvec![0; 20];
 assert_eq!(boxed.as_bitslice(), slice[.. 10]);

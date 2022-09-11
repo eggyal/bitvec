@@ -41,6 +41,11 @@ pub mod view;
 
 #[doc = include_str!("../doc/prelude.md")]
 pub mod prelude {
+	pub use generic_array::{
+		arr,
+		typenum::consts::*,
+	};
+
 	pub use crate::{
 		array::BitArray,
 		bitarr,
@@ -58,7 +63,10 @@ pub mod prelude {
 			BitRef,
 		},
 		slice::BitSlice,
-		store::BitStore,
+		store::{
+			BitStore,
+			USize,
+		},
 		view::{
 			AsBits,
 			AsMutBits,

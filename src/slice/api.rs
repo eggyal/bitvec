@@ -81,7 +81,7 @@ where
 	/// use bitvec::prelude::*;
 	///
 	/// assert_eq!(bits![].len(), 0);
-	/// assert_eq!(bits![0; 10].len(), 10);
+	/// assert_eq!(bits![0; U10].len(), 10);
 	/// ```
 	#[inline]
 	pub fn len(&self) -> usize {
@@ -100,7 +100,7 @@ where
 	/// use bitvec::prelude::*;
 	///
 	/// assert!(bits![].is_empty());
-	/// assert!(!bits![0; 10].is_empty());
+	/// assert!(!bits![0; U10].is_empty());
 	/// ```
 	#[inline]
 	pub fn is_empty(&self) -> bool {
@@ -152,7 +152,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 3];
+	/// let bits = bits![mut 0; U3];
 	/// if let Some(mut first) = bits.first_mut() {
 	///   *first = true;
 	/// }
@@ -185,7 +185,7 @@ where
 	/// let bits = bits![1, 0, 0];
 	/// let (first, rest) = bits.split_first().unwrap();
 	/// assert_eq!(first, &true);
-	/// assert_eq!(rest, bits![0; 2]);
+	/// assert_eq!(rest, bits![0; U2]);
 	/// ```
 	#[inline]
 	pub fn split_first(&self) -> Option<(BitRef<Const, T, O>, &Self)> {
@@ -216,10 +216,10 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 3];
+	/// let bits = bits![mut 0; U3];
 	/// if let Some((mut first, rest)) = bits.split_first_mut() {
 	///   *first = true;
-	///   assert_eq!(rest, bits![0; 2]);
+	///   assert_eq!(rest, bits![0; U2]);
 	/// }
 	/// assert_eq!(bits, bits![1, 0, 0]);
 	/// ```
@@ -256,7 +256,7 @@ where
 	/// let bits = bits![0, 0, 1];
 	/// let (last, rest) = bits.split_last().unwrap();
 	/// assert_eq!(last, &true);
-	/// assert_eq!(rest, bits![0; 2]);
+	/// assert_eq!(rest, bits![0; U2]);
 	/// ```
 	#[inline]
 	pub fn split_last(&self) -> Option<(BitRef<Const, T, O>, &Self)> {
@@ -287,10 +287,10 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 3];
+	/// let bits = bits![mut 0; U3];
 	/// if let Some((mut last, rest)) = bits.split_last_mut() {
 	///   *last = true;
-	///   assert_eq!(rest, bits![0; 2]);
+	///   assert_eq!(rest, bits![0; U2]);
 	/// }
 	/// assert_eq!(bits, bits![0, 0, 1]);
 	/// ```
@@ -355,7 +355,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 3];
+	/// let bits = bits![mut 0; U3];
 	/// if let Some(mut last) = bits.last_mut() {
 	///   *last = true;
 	/// }
@@ -429,11 +429,11 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 3];
+	/// let bits = bits![mut 0; U3];
 	///
 	/// *bits.get_mut(0).unwrap() = true;
 	/// bits.get_mut(1 ..).unwrap().fill(true);
-	/// assert_eq!(bits, bits![1; 3]);
+	/// assert_eq!(bits, bits![1; U3]);
 	/// ```
 	#[inline]
 	pub fn get_mut<'a, I>(&'a mut self, index: I) -> Option<I::Mut>
@@ -690,7 +690,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 4];
+	/// let bits = bits![mut 0; U4];
 	/// let mut iter = bits.iter_mut();
 	///
 	/// iter.nth(1).unwrap().commit(true); // index 1
@@ -815,7 +815,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut u8, Msb0; 0; 5];
+	/// let bits = bits![mut u8, Msb0; 0; U5];
 	///
 	/// for (idx, chunk) in unsafe {
 	///   bits.chunks_mut(2).remove_alias()
@@ -917,7 +917,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut u8, Msb0; 0; 5];
+	/// let bits = bits![mut u8, Msb0; 0; U5];
 	/// let mut iter = bits.chunks_exact_mut(2);
 	///
 	/// for (idx, chunk) in iter.by_ref().enumerate() {
@@ -1020,7 +1020,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut u8, Msb0; 0; 5];
+	/// let bits = bits![mut u8, Msb0; 0; U5];
 	/// for (idx, chunk) in unsafe {
 	///   bits.rchunks_mut(2).remove_alias()
 	/// }.enumerate() {
@@ -1119,7 +1119,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut u8, Msb0; 0; 5];
+	/// let bits = bits![mut u8, Msb0; 0; U5];
 	/// let mut iter = bits.rchunks_exact_mut(2);
 	///
 	/// for (idx, chunk) in iter.by_ref().enumerate() {
@@ -1181,8 +1181,8 @@ where
 	/// assert_eq!(unsafe { b.as_bitptr().offset_from(base) }, 6);
 	///
 	/// let (a, b) = bits.split_at(3);
-	/// assert_eq!(a, bits![0; 3]);
-	/// assert_eq!(b, bits![1; 3]);
+	/// assert_eq!(a, bits![0; U3]);
+	/// assert_eq!(b, bits![1; U3]);
 	/// ```
 	#[inline]
 	pub fn split_at(&self, mid: usize) -> (&Self, &Self) {
@@ -1224,7 +1224,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut u8, Msb0; 0; 6];
+	/// let bits = bits![mut u8, Msb0; 0; U6];
 	/// let base = bits.as_mut_bitptr();
 	///
 	/// let (a, b) = bits.split_at_mut(0);
@@ -1298,7 +1298,7 @@ where
 	/// //                     ^
 	/// let mut iter = bits.split(|_pos, bit| *bit);
 	///
-	/// assert_eq!(iter.next().unwrap(), bits![0; 2]);
+	/// assert_eq!(iter.next().unwrap(), bits![0; U2]);
 	/// assert!(iter.next().unwrap().is_empty());
 	/// assert!(iter.next().is_none());
 	/// ```
@@ -1530,7 +1530,7 @@ where
 	/// let mut iter = bits.rsplit(|_pos, bit| *bit);
 	///
 	/// assert!(iter.next().unwrap().is_empty());
-	/// assert_eq!(iter.next().unwrap(), bits![0; 2]);
+	/// assert_eq!(iter.next().unwrap(), bits![0; U2]);
 	/// assert!(iter.next().is_none());
 	/// ```
 	///
@@ -2121,9 +2121,9 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 5];
+	/// let bits = bits![mut 0; U5];
 	/// bits.fill(true);
-	/// assert_eq!(bits, bits![1; 5]);
+	/// assert_eq!(bits, bits![1; U5]);
 	/// ```
 	#[inline]
 	pub fn fill(&mut self, value: bool) {
@@ -2162,7 +2162,7 @@ where
 	/// ```rust
 	/// use bitvec::prelude::*;
 	///
-	/// let bits = bits![mut 0; 5];
+	/// let bits = bits![mut 0; U5];
 	/// bits.fill_with(|idx| idx % 2 == 0);
 	/// assert_eq!(bits, bits![1, 0, 1, 0, 1]);
 	/// ```

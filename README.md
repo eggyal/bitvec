@@ -143,8 +143,8 @@ use bitvec::prelude::*;
 
 // All data-types have macro
 // constructors.
-let arr = bitarr![u32, Lsb0; 0; 80];
-let bits = bits![u16, Msb0; 0; 40];
+let arr = bitarr![u32, Lsb0; 0; U80];
+let bits = bits![u16, Msb0; 0; U40];
 
 // Unsigned integers (scalar, array,
 // and slice) can be borrowed.

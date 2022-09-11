@@ -89,19 +89,19 @@ fn chunks() {
 	assert!(chunks.nth(1).is_none());
 	assert!(chunks.nth_back(1).is_none());
 
-	assert_eq!(bits![0; 2].chunks(3).next().unwrap().len(), 2);
-	assert_eq!(bits![0; 5].chunks(3).next().unwrap().len(), 3);
-	assert_eq!(bits![0; 5].chunks(3).nth(1).unwrap().len(), 2);
-	assert_eq!(bits![0; 8].chunks(3).nth(1).unwrap().len(), 3);
+	assert_eq!(bits![0; U2].chunks(3).next().unwrap().len(), 2);
+	assert_eq!(bits![0; U5].chunks(3).next().unwrap().len(), 3);
+	assert_eq!(bits![0; U5].chunks(3).nth(1).unwrap().len(), 2);
+	assert_eq!(bits![0; U8].chunks(3).nth(1).unwrap().len(), 3);
 
-	assert_eq!(bits![0; 5].chunks(3).next_back().unwrap().len(), 2);
-	assert_eq!(bits![0; 6].chunks(3).next_back().unwrap().len(), 3);
-	assert_eq!(bits![0; 5].chunks(3).nth_back(1).unwrap().len(), 3);
+	assert_eq!(bits![0; U5].chunks(3).next_back().unwrap().len(), 2);
+	assert_eq!(bits![0; U6].chunks(3).next_back().unwrap().len(), 3);
+	assert_eq!(bits![0; U5].chunks(3).nth_back(1).unwrap().len(), 3);
 }
 
 #[test]
 fn chunks_mut() {
-	let bits = bits![mut 1; 11];
+	let bits = bits![mut 1; U11];
 	let base = bits.as_bitptr();
 	let mut chunks = bits.chunks_mut(2);
 	assert_eq!(chunks.len(), 6);
@@ -130,14 +130,14 @@ fn chunks_mut() {
 
 	assert_eq!(bits, bits![0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0]);
 
-	assert_eq!(bits![mut 0; 2].chunks_mut(3).next().unwrap().len(), 2);
-	assert_eq!(bits![mut 0; 5].chunks_mut(3).next().unwrap().len(), 3);
-	assert_eq!(bits![mut 0; 5].chunks_mut(3).nth(1).unwrap().len(), 2);
-	assert_eq!(bits![mut 0; 8].chunks_mut(3).nth(1).unwrap().len(), 3);
+	assert_eq!(bits![mut 0; U2].chunks_mut(3).next().unwrap().len(), 2);
+	assert_eq!(bits![mut 0; U5].chunks_mut(3).next().unwrap().len(), 3);
+	assert_eq!(bits![mut 0; U5].chunks_mut(3).nth(1).unwrap().len(), 2);
+	assert_eq!(bits![mut 0; U8].chunks_mut(3).nth(1).unwrap().len(), 3);
 
-	assert_eq!(bits![mut 0; 5].chunks_mut(3).next_back().unwrap().len(), 2);
-	assert_eq!(bits![mut 0; 6].chunks_mut(3).next_back().unwrap().len(), 3);
-	assert_eq!(bits![mut 0; 5].chunks_mut(3).nth_back(1).unwrap().len(), 3);
+	assert_eq!(bits![mut 0; U5].chunks_mut(3).next_back().unwrap().len(), 2);
+	assert_eq!(bits![mut 0; U6].chunks_mut(3).next_back().unwrap().len(), 3);
+	assert_eq!(bits![mut 0; U5].chunks_mut(3).nth_back(1).unwrap().len(), 3);
 }
 
 #[test]
@@ -180,7 +180,7 @@ fn chunks_exact() {
 
 #[test]
 fn chunks_exact_mut() {
-	let bits = bits![mut 0; 20];
+	let bits = bits![mut 0; U20];
 	let base = bits.as_bitptr();
 	let mut chunks = bits.chunks_exact_mut(3);
 
@@ -249,15 +249,15 @@ fn rchunks() {
 	assert!(rchunks.nth(1).is_none());
 	assert!(rchunks.nth_back(1).is_none());
 
-	assert_eq!(bits![0; 5].rchunks(3).next().unwrap().len(), 3);
-	assert_eq!(bits![0; 5].rchunks(3).nth(1).unwrap().len(), 2);
-	assert_eq!(bits![0; 5].rchunks(3).next_back().unwrap().len(), 2);
-	assert_eq!(bits![0; 5].rchunks(3).nth_back(1).unwrap().len(), 3);
+	assert_eq!(bits![0; U5].rchunks(3).next().unwrap().len(), 3);
+	assert_eq!(bits![0; U5].rchunks(3).nth(1).unwrap().len(), 2);
+	assert_eq!(bits![0; U5].rchunks(3).next_back().unwrap().len(), 2);
+	assert_eq!(bits![0; U5].rchunks(3).nth_back(1).unwrap().len(), 3);
 }
 
 #[test]
 fn rchunks_mut() {
-	let bits = bits![mut 0; 11];
+	let bits = bits![mut 0; U11];
 	let base = bits.as_bitptr();
 	let mut rchunks = bits.rchunks_mut(2);
 	assert_eq!(rchunks.len(), 6);
@@ -286,10 +286,16 @@ fn rchunks_mut() {
 
 	assert_eq!(bits, bits![1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1]);
 
-	assert_eq!(bits![mut 0; 5].rchunks_mut(3).next().unwrap().len(), 3);
-	assert_eq!(bits![mut 0; 5].rchunks_mut(3).nth(1).unwrap().len(), 2);
-	assert_eq!(bits![mut 0; 5].rchunks_mut(3).next_back().unwrap().len(), 2);
-	assert_eq!(bits![mut 0; 5].rchunks_mut(3).nth_back(1).unwrap().len(), 3);
+	assert_eq!(bits![mut 0; U5].rchunks_mut(3).next().unwrap().len(), 3);
+	assert_eq!(bits![mut 0; U5].rchunks_mut(3).nth(1).unwrap().len(), 2);
+	assert_eq!(
+		bits![mut 0; U5].rchunks_mut(3).next_back().unwrap().len(),
+		2
+	);
+	assert_eq!(
+		bits![mut 0; U5].rchunks_mut(3).nth_back(1).unwrap().len(),
+		3
+	);
 }
 
 #[test]
@@ -332,7 +338,7 @@ fn rchunks_exact() {
 
 #[test]
 fn rchunks_exact_mut() {
-	let bits = bits![mut 0; 20];
+	let bits = bits![mut 0; U20];
 	let base = bits.as_bitptr();
 	let mut rchunks = bits.rchunks_exact_mut(3);
 

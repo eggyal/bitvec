@@ -10,10 +10,11 @@ use crate::{
 /// Constructs formatting-trait implementations by delegating.
 macro_rules! easy_fmt {
 	($(impl $fmt:ident)+ for BitArray) => { $(
-		impl<A, O> core::fmt::$fmt for $crate::array::BitArray<A, O>
+		impl<S, O, N> core::fmt::$fmt for $crate::array::BitArray<S, O, N>
 		where
+			S: $crate::store::BitStore,
 			O: $crate::order::BitOrder,
-			A: $crate::view::BitViewSized,
+			N: $crate::mem::Elts<S>,
 		{
 			#[inline]
 			#[cfg(not(tarpaulin_include))]

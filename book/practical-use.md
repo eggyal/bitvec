@@ -29,9 +29,9 @@ let array = [0u8; 8];
 let boxed: Box<[u16]> = Box::new([0u16; 4]);
 let vec = vec![0u32; 2];
 
-let bits_a = bitarr![u8, Msb0; 0; 64];
-let bits_b = bitbox![u16, Lsb0; 0; 64];
-let bits_v = bitvec![u32, LocalBits; 0; 32];
+let bits_a = bitarr![u8, Msb0; 0; U64];
+let bits_b = bitbox![u16, Lsb0; 0; U64];
+let bits_v = bitvec![u32, LocalBits; 0; U32];
 ```
 
 Once memory is bound, it can be borrowed as a `BitSlice` by using the `BitView`
@@ -44,9 +44,9 @@ containers borrow themselves as slices:
 # let array = [0u8; 8];
 # let boxed: Box<[u16]> = Box::new([0u16; 4]);
 # let vec = vec![0u32; 2];
-# let bits_a = bitarr![u8, Msb0; 0; 64];
-# let bits_b = bitbox![u16, Lsb0; 0; 64];
-# let bits_v = bitvec![u32, LocalBits; 0; 32];
+# let bits_a = bitarr![u8, Msb0; 0; U64];
+# let bits_b = bitbox![u16, Lsb0; 0; U64];
+# let bits_v = bitvec![u32, LocalBits; 0; U32];
 let array_bits = array.view_bits::<Msb0>();
 let boxed_bits = boxed.view_bits::<Lsb0>();
 let vec_bits = vec.view_bits::<LocalBits>();
@@ -59,7 +59,7 @@ let bits_c_ref: &BitSlice<_, _> = &bits_c;
 > And, of course, mutability applies:
 >
 > ```rust
-> let mut arr = bitarr![0; 10];
+> let mut arr = bitarr![0; U10];
 > let arr_ref: &mut BitSlice = &mut arr;
 > arr_ref.set(1, true);
 > assert!(arr_ref[1]);

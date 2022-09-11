@@ -5,14 +5,15 @@ in-memory representation. The Rust generic system permits `bitvec` to have a
 more powerful and capable behavior than any other bitstream library yet
 implemented in any language.
 
-All `bitvec` types take two type parameters. The first denotes the storage type
-being used: for everything but `BitArray`, this is an implementor of the
-[`BitStore`] trait, and denotes the integer component of an underlying slice;
-for `BitArray`, it is an implementor of [`BitViewSized`], and is the entire
-storage block. The second is an implementor of [`BitOrder`], and informs how the
-structure translates a semantic index into a memory access.
+All `bitvec` types take at least two type parameters. The first denotes the
+storage type being used: this is an implementor of the [`BitStore`] trait, and
+denotes the integer component of an underlying slice. The second is an
+implementor of [`BitOrder`], and informs how the structure translates a semantic
+index into a memory access. `BitArray` includes a third parameter, a type-level
+integer from the `typenum` crate that indicates the array's length in bits (the
+actual backing store may be larger).
 
-The combination of these two parameters governs how a `bitvec` type computes its
+The combination of these parameters governs how a `bitvec` type computes its
 accesses to memory.
 
 The next two chapters describe each trait and their implementors in more detail.
@@ -35,4 +36,3 @@ expression on the right side of the assignment `=`.
 
 [`BitOrder`]: https://docs.rs/bitvec/latest/bitvec/order/trait.BitOrder.html
 [`BitStore`]: https://docs.rs/bitvec/latest/bitvec/store/trait.BitStore.html
-[`BitViewSized`]: https://docs.rs/bitvec/latest/bitvec/view/trait.BitViewSized.html

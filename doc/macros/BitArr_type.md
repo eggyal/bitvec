@@ -21,15 +21,15 @@ type parameters are set to the crate defaut type parameters of `Lsb0` and
 use bitvec::prelude::*;
 use core::cell::Cell;
 
-let a: BitArr!(for 100) = BitArray::ZERO;
-let b: BitArr!(for 100, in u32) = BitArray::<_>::ZERO;
-let c: BitArr!(for 100, in Cell<u16>, Msb0) = BitArray::<_, _>::ZERO;
+let a: BitArr!(for U100) = BitArray::ZERO;
+let b: BitArr!(for U100, in u32) = BitArray::ZERO;
+let c: BitArr!(for U100, in Cell<u16>, Msb0) = BitArray::ZERO;
 ```
 
-The length expression must be `const`. It may be a literal, a named `const`
-item, or a `const` expression, as long as it evaluates to a `usize`. The type
-arguments have no restrictions, as long as they are in-scope at the invocation
-site and are implementors of [`BitOrder`] and [`BitStore`].
+The arguments have no restrictions, as long as they are in-scope at the
+invocation site and are implementors of [`Unsigned`], [`BitOrder`] and
+[`BitStore`].
 
+[`Unsigned`]: generic_array::typenum::Unsigned
 [`BitOrder`]: crate::order::BitOrder
 [`BitStore`]: crate::store::BitStore

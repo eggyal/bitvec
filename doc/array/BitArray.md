@@ -27,39 +27,42 @@ macro:
 ```rust
 use bitvec::prelude::*;
 
-type Example = BitArr!(for 43, in u32, Msb0);
-let example: Example = bitarr!(u32, Msb0; 1; 33);
+type Example = BitArr!(for U43, in u32, Msb0);
+let example: Example = bitarr!(u32, Msb0; 1; U43);
 
 struct HasBitfield {
   inner: Example,
 }
 
 let ex2 = HasBitfield {
-  inner: BitArray::new([1, 2]),
+  inner: BitArray::new(arr![u32; 1, 2]),
 };
 ```
 
-Note that the actual type of the `Example` alias is `BitArray<[u32; 2], Msb0>`,
-as that is `ceil(32, 43)`, so the `bitarr!` macro can accept any number of bits
-in `33 .. 65` and will produce a value of the correct type.
+Note that the actual type of the `Example` alias is
+`BitArray<GenericArray<u32, U2>, Msb0, U43>`.  While this is backed by `[u32; 2]`
+storage, only 43 bits of it are accessible.  The `bitarr!` macro therefore cannot
+accept any number of bits `33 .. 65` while still producing a value of the correct
+type.
 
 ## Type Parameters
 
-`BitArray` differs from the other data structures in the crate in that it does
-not take a `T: BitStore` parameter, but rather takes `A: BitViewSized`. That
-trait is implemented by all `T: BitStore` scalars and all `[T; N]` arrays of
-them, and provides the logic to translate the aggregate storage into the memory
-sequence that the crate expects.
+Like the other data structures in the crate, `BitArray` takes a `T: BitStore`
+parameter.
 
 As with all `BitSlice` regions, the `O: BitOrder` parameter specifies the
 ordering of bits within a single `A::Store` element.
 
+The `N: Elts<T>` parameter is a type-level integer (from the typenum crate)
+indicating the number of bits held.
+
 ## Future API Changes
 
-Exact bit lengths cannot be encoded into the `BitArray` type until the
-const-generics system in the compiler can allow type-level computation on type
+Exact bit lengths are currently encoded into the `BitArray` type via type-level
+integers from the typenum crate.  The const-generics system in the compiler is
+a better approach, but cannot be used without type-level computation on type
 integers. When this stabilizes, `bitvec` will issue a major upgrade that
-replaces the `BitArray<A, O>` definition with `BitArray<T, O, const N: usize>`
+replaces the `BitArray<S, O, N>` definition with `BitArray<S, O, const N: usize>`
 and match the C++ `std::bitset<N>` definition.
 
 ## Large Bit-Arrays
@@ -67,7 +70,7 @@ and match the C++ `std::bitset<N>` definition.
 As with ordinary arrays, large arrays can be expensive to move by value, and
 should generally be preferred to have static locations such as actual `static`
 bindings, a long lifetime in a low stack frame, or a heap allocation. While you
-certainly can `Box<[BitArray<A, O>]>` directly, you may instead prefer the
+certainly can `Box<[BitArray<S, O, N>]>` directly, you may instead prefer the
 [`BitBox`] or [`BitVec`] heap-allocated regions. These offer the same storage
 behavior and are better optimized than `Box<BitArray>` for working with the
 contained `BitSlice` region.
@@ -77,19 +80,19 @@ contained `BitSlice` region.
 ```rust
 use bitvec::prelude::*;
 
-const WELL_KNOWN: BitArr!(for 16, in u8, Lsb0) = BitArray::<[u8; 2], Lsb0> {
-  data: *b"bv",
+const WELL_KNOWN: BitArr!(for U16, in u8, Lsb0) = BitArray::<u8, Lsb0, U16> {
+  data: arr![u8; b'b', b'v'],
   ..BitArray::ZERO
 };
 
 struct HasBitfields {
-  inner: BitArr!(for 50, in u8, Lsb0),
+  inner: BitArr!(for U50, in u8, Lsb0),
 }
 
 impl HasBitfields {
   fn new() -> Self {
     Self {
-      inner: bitarr!(u8, Lsb0; 0; 50),
+      inner: bitarr!(u8, Lsb0; 0; U50),
     }
   }
 

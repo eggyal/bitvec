@@ -88,7 +88,7 @@ mod tests {
 			($($ord:ident @ $($sto:ty),+);+ $(;)?) => {{ $( $(
 				assert_impl_all!(BitSlice<$sto, $ord>: Serialize);
 				assert_impl_all!(BitArray<$sto, $ord>: Serialize, Deserialize<'static>);
-				assert_impl_all!(BitArray<[$sto; 32], $ord>: Serialize, Deserialize<'static>);
+				assert_impl_all!(BitArray<$sto, $ord, U128>: Serialize, Deserialize<'static>);
 
 				#[cfg(feature = "alloc")] {
 					assert_impl_all!(BitBox<$sto, $ord>: Serialize, Deserialize<'static>);

@@ -47,7 +47,7 @@ use bitvec::prelude::*;
 use bitvec::slice::{ChunksMut, ChunksMutNoAlias};
 type Alias8 = <u8 as BitStore>::Alias;
 
-let mut data: BitArr!(for 40, in u8, Msb0) = bitarr![u8, Msb0; 0; 40];
+let mut data: BitArr!(for U40, in u8, Msb0) = bitarr![u8, Msb0; 0; U40];
 
 let mut chunks: ChunksMut<u8, Msb0> = data.chunks_mut(5);
 let _chunk: &mut BitSlice<Alias8, Msb0> = chunks.next().unwrap();
@@ -65,7 +65,7 @@ use bitvec::slice::{ChunksMut, ChunksMutNoAlias};
 type Alias8 = <u8 as BitStore>::Alias;
 type Alias8Alias = <Alias8 as BitStore>::Alias;
 
-let mut data: BitArr!(for 40, in u8, Msb0) = bitarr!(u8, Msb0; 0; 40);
+let mut data: BitArr!(for U40, in u8, Msb0) = bitarr!(u8, Msb0; 0; U40);
 let (_head, rest): (_, &mut BitSlice<Alias8, Msb0>) = data.split_at_mut(5);
 
 let mut chunks: ChunksMut<Alias8, Msb0> = rest.chunks_mut(5);
@@ -83,7 +83,7 @@ use bitvec::prelude::*;
 use bitvec::slice::{ChunksMut, ChunksMutNoAlias};
 type Alias8 = <u8 as BitStore>::Alias;
 
-let mut data: BitArr!(for 40, in u8, Msb0) = bitarr!(u8, Msb0; 0; 40);
+let mut data: BitArr!(for U40, in u8, Msb0) = bitarr!(u8, Msb0; 0; U40);
 let (_head, rest): (_, &mut BitSlice<Alias8, Msb0>) = data.split_at_mut(5);
 
 let (head, body, tail): (

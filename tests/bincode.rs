@@ -24,7 +24,7 @@ use bitvec::prelude::*;
 
 #[test]
 fn serialize_bitarr_bincode() {
-	type BA = BitArr!(for 8, in u8, Msb0);
+	type BA = BitArr!(for U8, in u8, Msb0);
 	let ba: BA = bitarr![u8, Msb0; 1, 1, 1, 1, 1, 0, 0, 0];
 
 	let bytes = bincode::serialize::<BA>(&ba).unwrap();

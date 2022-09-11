@@ -56,7 +56,7 @@ fn inherents() {
 	assert_eq!(bv.len(), 32);
 
 	assert_eq!(bitbox![0, 1, 0, 0, 1].as_bitslice(), bits![0, 1, 0, 0, 1]);
-	assert_eq!(bitbox![0; 5].as_mut_bitslice(), bits![0; 5]);
+	assert_eq!(bitbox![0; 5].as_mut_bitslice(), bits![0; U5]);
 
 	let mut bb = bitbox![0; 5];
 	bb.fill_uninitialized(true);
@@ -128,7 +128,7 @@ fn conversions() {
 	let bits = bits![0, 1, 0, 0, 1];
 	assert_eq!(BitBox::from(bits), bits);
 
-	let arr: BitArray = BitArray::new(rand::random());
+	let arr: BitArray = BitArray::new(rand::random::<[usize; 1]>().into());
 	assert_eq!(BitBox::from(arr), arr);
 
 	let boxed = Box::new(5usize);

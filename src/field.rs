@@ -12,8 +12,12 @@ use wyz::comu::{
 	Mut,
 };
 
+#[cfg(feature = "alloc")]
 use crate::{
-	array::BitArray,
+	boxed::BitBox,
+	vec::BitVec,
+};
+use crate::{
 	devel as dvl,
 	domain::{
 		Domain,
@@ -27,12 +31,6 @@ use crate::{
 	},
 	slice::BitSlice,
 	store::BitStore,
-	view::BitViewSized,
-};
-#[cfg(feature = "alloc")]
-use crate::{
-	boxed::BitBox,
-	vec::BitVec,
 };
 
 mod io;
@@ -388,57 +386,62 @@ where T: BitStore
 	}
 }
 
-#[doc = include_str!("../doc/field/impl_BitArray.md")]
-impl<A, O> BitField for BitArray<A, O>
-where
-	O: BitOrder,
-	A: BitViewSized,
-	BitSlice<A::Store, O>: BitField,
-{
-	#[inline(always)]
-	fn load_le<I>(&self) -> I
-	where I: Integral {
-		let mut accum = I::ZERO;
+// FIXME: The following optimisation can no longer be implemented this way, as
+//        stores may now nned to be truncated and loads extended to fit the
+//        array size `N::USIZE`.
 
-		for elem in self.as_raw_slice().iter().map(BitStore::load_value).rev() {
-			maybe_shift_left(&mut accum, bits_of::<A::Store>());
-			accum |= resize::<_, I>(elem);
-		}
+// #[doc = include_str!("../doc/field/impl_BitArray.md")]
+// impl<S, O, N> BitField for BitArray<S, O, N>
+// where
+// 	S: BitStore,
+// 	O: BitOrder,
+// 	N: Elts<S>,
+// 	BitSlice<S, O>: BitField,
+// {
+// 	#[inline(always)]
+// 	fn load_le<I>(&self) -> I
+// 	where I: Integral {
+// 		let mut accum = I::ZERO;
 
-		sign(accum, self.len())
-	}
+// 		for elem in self.as_raw_slice().iter().map(BitStore::load_value).rev() {
+// 			maybe_shift_left(&mut accum, bits_of::<S>());
+// 			accum |= resize::<_, I>(elem);
+// 		}
 
-	#[inline(always)]
-	fn load_be<I>(&self) -> I
-	where I: Integral {
-		let mut accum = I::ZERO;
+// 		sign(accum, self.len())
+// 	}
 
-		for elem in self.as_raw_slice().iter().map(BitStore::load_value) {
-			maybe_shift_left(&mut accum, bits_of::<A::Store>());
-			accum |= resize::<_, I>(elem);
-		}
+// 	#[inline(always)]
+// 	fn load_be<I>(&self) -> I
+// 	where I: Integral {
+// 		let mut accum = I::ZERO;
 
-		sign(accum, self.len())
-	}
+// 		for elem in self.as_raw_slice().iter().map(BitStore::load_value) {
+// 			maybe_shift_left(&mut accum, bits_of::<S>());
+// 			accum |= resize::<_, I>(elem);
+// 		}
 
-	#[inline(always)]
-	fn store_le<I>(&mut self, mut value: I)
-	where I: Integral {
-		for slot in self.as_raw_mut_slice() {
-			slot.store_value(resize(value));
-			maybe_shift_right(&mut value, bits_of::<A::Store>());
-		}
-	}
+// 		sign(accum, self.len())
+// 	}
 
-	#[inline(always)]
-	fn store_be<I>(&mut self, mut value: I)
-	where I: Integral {
-		for slot in self.as_raw_mut_slice().iter_mut().rev() {
-			slot.store_value(resize(value));
-			maybe_shift_right(&mut value, bits_of::<A::Store>());
-		}
-	}
-}
+// 	#[inline(always)]
+// 	fn store_le<I>(&mut self, mut value: I)
+// 	where I: Integral {
+// 		for slot in self.as_raw_mut_slice() {
+// 			slot.store_value(resize(value));
+// 			maybe_shift_right(&mut value, bits_of::<S>());
+// 		}
+// 	}
+
+// 	#[inline(always)]
+// 	fn store_be<I>(&mut self, mut value: I)
+// 	where I: Integral {
+// 		for slot in self.as_raw_mut_slice().iter_mut().rev() {
+// 			slot.store_value(resize(value));
+// 			maybe_shift_right(&mut value, bits_of::<S>());
+// 		}
+// 	}
+// }
 
 #[cfg(feature = "alloc")]
 #[cfg(not(tarpaulin_include))]

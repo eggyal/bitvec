@@ -6,6 +6,7 @@ use core::{
 		self,
 		Formatter,
 	},
+	marker::PhantomData,
 };
 
 use serde::{
@@ -36,15 +37,19 @@ use super::{
 use crate::{
 	array::BitArray,
 	index::BitIdx,
-	mem::bits_of,
+	mem::{
+		bits_of,
+		Elts,
+	},
 	order::BitOrder,
 	store::BitStore,
 };
 
-impl<T, O> Serialize for BitArray<T, O>
+impl<T, O, N> Serialize for BitArray<T, O, N>
 where
 	T: BitStore,
 	O: BitOrder,
+	N: Elts<T>,
 	T::Mem: Serialize,
 {
 	#[inline]
@@ -54,56 +59,20 @@ where
 
 		state.serialize_field("order", &any::type_name::<O>())?;
 		state.serialize_field("head", &BitIdx::<T::Mem>::MIN)?;
-		state.serialize_field("bits", &(self.len() as u64))?;
-		state.serialize_field(
-			"data",
-			Array::from_ref(core::array::from_ref(&self.data)),
-		)?;
-
-		state.end()
-	}
-}
-
-impl<T, O, const N: usize> Serialize for BitArray<[T; N], O>
-where
-	T: BitStore,
-	O: BitOrder,
-	T::Mem: Serialize,
-{
-	#[inline]
-	fn serialize<S>(&self, serializer: S) -> super::Result<S>
-	where S: Serializer {
-		let mut state = serializer.serialize_struct("BitArr", FIELDS.len())?;
-
-		state.serialize_field("order", &any::type_name::<O>())?;
-		state.serialize_field("head", &BitIdx::<T::Mem>::MIN)?;
-		state.serialize_field("bits", &(self.len() as u64))?;
+		state.serialize_field("bits", &N::U64)?;
 		state.serialize_field("data", Array::from_ref(&self.data))?;
 
 		state.end()
 	}
 }
 
-impl<'de, T, O> Deserialize<'de> for BitArray<T, O>
+impl<'de, T, O, N> Deserialize<'de> for BitArray<T, O, N>
 where
 	T: BitStore,
 	O: BitOrder,
+	N: Elts<T>,
 	T::Mem: Deserialize<'de>,
-{
-	#[inline]
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where D: Deserializer<'de> {
-		deserializer
-			.deserialize_struct("BitArr", FIELDS, BitArrVisitor::<T, O, 1>::THIS)
-			.map(|BitArray { data: [elem], .. }| BitArray::new(elem))
-	}
-}
-
-impl<'de, T, O, const N: usize> Deserialize<'de> for BitArray<[T; N], O>
-where
-	T: BitStore,
-	O: BitOrder,
-	T::Mem: Deserialize<'de>,
+	Array<T, N::Output>: Deserialize<'de>,
 {
 	#[inline]
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -117,39 +86,44 @@ where
 }
 
 /// Assists in deserialization of a static `BitArr`.
-struct BitArrVisitor<T, O, const N: usize>
+struct BitArrVisitor<T, O, N>
 where
 	T: BitStore,
 	O: BitOrder,
+	N: Elts<T>,
 {
 	/// The deserialized bit-ordering string.
 	order: Option<TypeName<O>>,
 	/// The deserialized head-bit index. This must be zero; it is used for
 	/// consistency with `BitSeq` and to carry `T::Mem` information.
-	head:  Option<BitIdx<T::Mem>>,
-	/// The deserialized bit-count. It must be `bits_of::<[T::Mem; N]>()`.
-	bits:  Option<u64>,
+	head: Option<BitIdx<T::Mem>>,
+	/// The deserialized bit-count. It must be `N::USIZE`.
+	bits: Option<u64>,
 	/// The deserialized data buffer.
-	data:  Option<Array<T, N>>,
+	data: Option<Array<T, N::Output>>,
+	/// The expected bit-count.
+	expected_bits: PhantomData<N>,
 }
 
-impl<'de, T, O, const N: usize> BitArrVisitor<T, O, N>
+impl<'de, T, O, N> BitArrVisitor<T, O, N>
 where
 	T: BitStore,
 	O: BitOrder,
-	Array<T, N>: Deserialize<'de>,
+	N: Elts<T>,
+	Array<T, N::Output>: Deserialize<'de>,
 {
 	/// A new visitor in its ready condition.
 	const THIS: Self = Self {
 		order: None,
-		head:  None,
-		bits:  None,
-		data:  None,
+		head: None,
+		bits: None,
+		data: None,
+		expected_bits: PhantomData,
 	};
 
 	/// Attempts to assemble deserialized components into an output value.
 	#[inline]
-	fn assemble<E>(mut self) -> Result<BitArray<[T; N], O>, E>
+	fn assemble<E>(mut self) -> Result<BitArray<T, O, N>, E>
 	where E: Error {
 		self.order.take().ok_or_else(|| E::missing_field("order"))?;
 		let head = self.head.take().ok_or_else(|| E::missing_field("head"))?;
@@ -163,7 +137,7 @@ where
 			));
 		}
 		let bits = bits as usize;
-		if bits != bits_of::<[T; N]>() {
+		if bits != N::USIZE {
 			return Err(E::invalid_length(bits, &self));
 		}
 
@@ -171,22 +145,23 @@ where
 	}
 }
 
-impl<'de, T, O, const N: usize> Visitor<'de> for BitArrVisitor<T, O, N>
+impl<'de, T, O, N> Visitor<'de> for BitArrVisitor<T, O, N>
 where
 	T: BitStore,
 	O: BitOrder,
-	Array<T, N>: Deserialize<'de>,
+	N: Elts<T>,
+	Array<T, N::Output>: Deserialize<'de>,
 {
-	type Value = BitArray<[T; N], O>;
+	type Value = BitArray<T, O, N>;
 
 	#[inline]
 	fn expecting(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(
 			fmt,
-			"a `BitArray<[u{}; {}], {}>`",
+			"a `BitArray<u{}, {}, U{}>`",
 			bits_of::<T::Mem>(),
-			N,
 			any::type_name::<O>(),
+			N::U64,
 		)
 	}
 
@@ -263,8 +238,8 @@ mod tests {
 	#[test]
 	#[cfg(feature = "std")]
 	fn roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-		type BA = BitArr!(for 16, in u8, Msb0);
-		let array = [0x3Cu8, 0xA5].into_bitarray::<Msb0>();
+		type BA = BitArr!(for U16, in u8, Msb0);
+		let array = arr![u8; 0x3C, 0xA5].into_bitarray::<Msb0, U16>();
 
 		let bytes = bincode::serialize(&array)?;
 		let array2 = bincode::deserialize::<BA>(&bytes)?;
@@ -279,7 +254,7 @@ mod tests {
 		assert_eq!(array, array4);
 
 		type BA2 = BitArray<u16, Msb0>;
-		let array = BA2::new(44203);
+		let array = BA2::new(arr![u16; 44203]);
 
 		let bytes = bincode::serialize(&array)?;
 		let array2 = bincode::deserialize::<BA2>(&bytes)?;
@@ -298,7 +273,7 @@ mod tests {
 
 	#[test]
 	fn tokens() {
-		let array = [0x3Cu8, 0xA5].into_bitarray::<Msb0>();
+		let array = arr![u8; 0x3C, 0xA5].into_bitarray::<Msb0, U16>();
 		let tokens = &mut [
 			Token::Struct {
 				name: "BitArr",
@@ -343,13 +318,13 @@ mod tests {
 	#[test]
 	#[cfg(feature = "alloc")]
 	fn errors() {
-		type BA = BitArr!(for 8, in u8, Msb0);
+		type BA = BitArr!(for U8, in u8, Msb0);
 		let mut tokens = vec![
 			Token::Seq { len: Some(4) },
 			Token::BorrowedStr(any::type_name::<Msb0>()),
 		];
 
-		assert_de_tokens_error::<BitArr!(for 8, in u8, Lsb0)>(
+		assert_de_tokens_error::<BitArr!(for U8, in u8, Lsb0)>(
 			&tokens,
 			&format!(
 				"invalid value: string \"{}\", expected the string \"{}\"",
@@ -373,8 +348,8 @@ mod tests {
 		tokens[6] = Token::U64(7);
 		assert_de_tokens_error::<BA>(
 			&tokens,
-			"invalid length 7, expected a `BitArray<[u8; 1], \
-			 bitvec::order::Msb0>`",
+			"invalid length 7, expected a `BitArray<u8, bitvec::order::Msb0, \
+			 U8>`",
 		);
 
 		tokens[4] = Token::U8(1);

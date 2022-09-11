@@ -43,7 +43,7 @@ assert_eq!(bits, bits![1, 1, 1, 0, 0, 0]);
 while let Some((&false, rest)) = bits.split_last() {
   bits = rest;
 }
-assert_eq!(bits, bits![1; 3]);
+assert_eq!(bits, bits![1; U3]);
 ```
 
 Mutation works:
@@ -52,7 +52,7 @@ Mutation works:
 use bitvec::prelude::*;
 use std::{iter, thread};
 
-let bits: &'static mut BitSlice = bits![mut 0; 8];
+let bits: &'static mut BitSlice = bits![mut 0; U8];
 
 {
   let (left, right) = bits.split_at_mut(4);
@@ -65,7 +65,7 @@ let bits: &'static mut BitSlice = bits![mut 0; 8];
   b.join().unwrap();
 }
 
-assert_eq!(bits, bits![1; 8]);
+assert_eq!(bits, bits![1; U8]);
 ```
 
 Everything you can do with a slice, an array, or a vector of bits, you can do
